@@ -1,8 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
+import { Transport } from '@nestjs/microservices';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  app.connectMicroservice({
+    transport: Transport.RMQ,
+    options: {
+      urls: ['amqp://guest:guest@localhost:5672'],
+      queue: 'auth_events',           // cùng queue (pub/sub)
+      queueOptions: { durable: true },
+      noAck: false,                   // để ack thủ công nếu cần
+    },
+  });
+
+  await app.startAllMicroservices();
+  await app.listen(3001);
 }
 bootstrap();

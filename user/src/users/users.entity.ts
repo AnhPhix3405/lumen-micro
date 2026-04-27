@@ -59,4 +59,7 @@ export class User {
 
     @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
     deletedAt: Date;
+
+    @Column({ name: 'account_id', type: 'uuid', nullable: true })
+    accountId: string;
 }

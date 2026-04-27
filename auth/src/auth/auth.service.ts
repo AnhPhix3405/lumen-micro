@@ -1,32 +1,33 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import bcrypt from "bcrypt";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { AuthAccount } from "../accounts/accounts.entity";
 import { ConfigService } from "@nestjs/config";
+import { ClientProxy } from "@nestjs/microservices";
+import { AccountsService } from "src/accounts/accounts.service";
 
 @Injectable()
 export class AuthService {
     constructor(
-        @InjectRepository(AuthAccount)
-        private readonly accountsRepository: Repository<AuthAccount>,
         private readonly configService: ConfigService,
+        @Inject('EVENT_BUS')
+        private client: ClientProxy,
+        private readonly accountsService: AccountsService,
     ) { }
     async createAccount(email: string, password: string) {
         const hashedPassword = await this.hashPassword(password);
-        const account = this.accountsRepository.create({
+        const account = await this.accountsService.createAccount({
             email: email,
             password_hash: hashedPassword,
-            provider: "local",
-            is_verified: false,
-            status: "pending",
         });
-        await this.accountsRepository.save(account);
+        await this.client.emit('account_created', {
+            version: 1,
+            accountId: account.id,
+            email: account.email,
+        });
         return account;
     }
 
     async hashPassword(password: string) {
-        const saltRounds = this.configService.get<number>("SALT_ROUNDS");
+        const saltRounds = Number(this.configService.get<string>('SALT_ROUNDS'));
         const hash = await bcrypt.hash(password, saltRounds);
         return hash;
     }

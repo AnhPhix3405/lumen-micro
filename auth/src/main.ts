@@ -10,7 +10,6 @@ async function bootstrap() {
     console.log("Redis connected");
   } catch (error) {
     console.error("Redis connection failed", error);
-
   }
 }
 bootstrap();
