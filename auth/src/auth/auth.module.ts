@@ -3,7 +3,7 @@ import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { AccountsModule } from "../accounts/accounts.module";
-
+import { EmailService } from "src/services/email.service";
 @Module({
   imports: [
     AccountsModule,
@@ -20,7 +20,7 @@ import { AccountsModule } from "../accounts/accounts.module";
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService]
+  providers: [AuthService, EmailService]
 })
 
 export class AuthModule { }

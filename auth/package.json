@@ -29,6 +29,7 @@
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^1.0.3",
     "bcrypt": "^6.0.0",
+    "nodemailer": "^8.0.7",
     "pg": "^8.20.0",
     "redis": "^5.12.1",
     "reflect-metadata": "^0.2.2",

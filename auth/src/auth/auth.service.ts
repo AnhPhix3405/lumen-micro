@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { ConfigService } from "@nestjs/config";
 import { ClientProxy } from "@nestjs/microservices";
 import { AccountsService } from "src/accounts/accounts.service";
+import { EmailService } from "src/services/email.service";
 
 @Injectable()
 export class AuthService {
@@ -11,6 +12,7 @@ export class AuthService {
         @Inject('EVENT_BUS')
         private client: ClientProxy,
         private readonly accountsService: AccountsService,
+        private readonly emailService: EmailService,
     ) { }
     async createAccount(email: string, password: string) {
         const hashedPassword = await this.hashPassword(password);
@@ -18,11 +20,12 @@ export class AuthService {
             email: email,
             password_hash: hashedPassword,
         });
-        await this.client.emit('account_created', {
-            version: 1,
-            accountId: account.id,
-            email: account.email,
-        });
+        await this.emailService.sendVerificationCode(email);
+        // await this.client.emit('account_created', {
+        //     version: 1,
+        //     accountId: account.id,
+        //     email: account.email,
+        // });
         return account;
     }
 
