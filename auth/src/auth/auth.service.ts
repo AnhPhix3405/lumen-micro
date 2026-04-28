@@ -4,6 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { ClientProxy } from "@nestjs/microservices";
 import { AccountsService } from "src/accounts/accounts.service";
 import { EmailService } from "src/services/email.service";
+import { redisClient } from "src/configs/redisClient.config";
 
 @Injectable()
 export class AuthService {
@@ -33,6 +34,18 @@ export class AuthService {
         const saltRounds = Number(this.configService.get<string>('SALT_ROUNDS'));
         const hash = await bcrypt.hash(password, saltRounds);
         return hash;
+    }
+
+    async verifyAccount(email: string, code: string) {
+        const storedCode = await redisClient.get(email);
+        if (!storedCode) {
+            throw new Error("Verification code expired");
+        }
+        if (storedCode !== code) {
+            throw new Error("Invalid verification code");
+        }
+        await this.accountsService.verifyAccount(email);
+        await redisClient.del(email);
     }
 
 }

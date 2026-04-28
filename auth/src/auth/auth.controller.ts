@@ -1,6 +1,7 @@
 import { Body, Controller, HttpStatus, Post } from "@nestjs/common";
 import type { IRegisterDto } from "./dto/register.dto";
 import { AuthService } from "./auth.service";
+import type { IVerifyEmailDto } from "./dto/verify_email.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -12,6 +13,16 @@ export class AuthController {
             data: account,
             message: "Account created successfully",
             status : HttpStatus.CREATED
+        }
+    }
+
+    @Post("verify")
+    async verify(@Body() req: IVerifyEmailDto) {
+        const account = await this.authService.verifyAccount(req.email, req.code);
+        return {
+            data: account,
+            message: "Account verified successfully",
+            status : HttpStatus.OK
         }
     }
 }

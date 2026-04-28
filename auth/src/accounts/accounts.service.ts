@@ -20,4 +20,14 @@ export class AccountsService {
         const savedAccount = await this.accountsRepository.save(account);
         return savedAccount;
     }
+
+    async verifyAccount(email: string) {
+        const account = await this.accountsRepository.findOne({ where: { email: email } });
+        if (!account) {
+            throw new Error("Account not found");
+        }
+        account.is_verified = true;
+        account.status = "active";
+        await this.accountsRepository.save(account);
+    }
 }

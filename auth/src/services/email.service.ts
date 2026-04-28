@@ -1,7 +1,7 @@
 import * as nodemailer from "nodemailer";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-
+import { redisClient } from "src/configs/redisClient.config";
 @Injectable()
 export class EmailService {
     private transporter: nodemailer.Transporter;
@@ -20,7 +20,7 @@ export class EmailService {
 
     async sendVerificationCode(email: string) {
         const code = Math.floor(Math.random() * 1000000);
-        // await redisClient.set(email, code, { EX: 60 * 3 });
+        await redisClient.set(email, code, { EX: 60 * 3 });
         await this.transporter.sendMail({
             from: this.configService.get<string>("EMAIL_USER"),
             to: email,
