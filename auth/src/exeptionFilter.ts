@@ -3,6 +3,7 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
+  BadRequestException,
 } from '@nestjs/common';
 
 @Catch()
@@ -15,6 +16,12 @@ export class AllExceptionFilter implements ExceptionFilter {
     let message = 'Internal server error';
 
     if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const res = exception.getResponse();
+      message = typeof res === 'string' ? res : res['message'];
+    }
+
+    if(exception instanceof BadRequestException) {
       status = exception.getStatus();
       const res = exception.getResponse();
       message = typeof res === 'string' ? res : res['message'];

@@ -30,4 +30,12 @@ export class AccountsService {
         account.status = "active";
         await this.accountsRepository.save(account);
     }
+
+    async getAccountByEmail(email: string) {
+        const account = await this.accountsRepository.findOne({ where: { email: email } });
+        if (!account) {
+            throw new Error("Account not found");
+        }
+        return account;
+    }
 }

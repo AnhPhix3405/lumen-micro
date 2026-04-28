@@ -3,9 +3,10 @@ import { AppModule } from './app.module';
 import { redisClient } from './configs/redisClient.config';
 import { ValidationPipe } from '@nestjs/common';
 import { AllExceptionFilter } from './exeptionFilter';
-
+import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
