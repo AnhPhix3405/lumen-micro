@@ -1,22 +1,22 @@
-import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Post, Req, Res, UnauthorizedException, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./users.entity";
 import { Repository } from "typeorm";
 import * as crypto from 'crypto';
 import type { Request, Response } from "express";
 import { ConfigService } from "@nestjs/config";
-import {v2 as cloudinary} from "cloudinary";
 import { JwtAuthGuard } from "src/auth/jwt_auth.guard";
 import { IToken } from "src/intefaces/token.interface";
-interface RequestWithUser extends Request {
-  user: IToken;
-}
+import { FileInterceptor } from "@nestjs/platform-express";
+import { CloudinaryService } from "src/upload/cloudinary.service";
+import type { RequestWithPayload } from "src/intefaces/request.interface";
 @Controller('/user')
 export class UsersController {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly configService: ConfigService,
+        private readonly cloudinaryService: CloudinaryService,
     ) { }
 
     @Get()
@@ -82,38 +82,63 @@ export class UsersController {
         }
     }
 
-    @Post('signed-upload-url')
+    @Post("upload-avatar")
     @UseGuards(JwtAuthGuard)
-    getSignedUploadUrl(@Req() req: RequestWithUser,@Body() body: { folder?: string; publicId?: string }, @Res() res: Response) {
-        const timestamp = Math.round(new Date().getTime() / 1000);
-        const uploadPreset = 'lumen';
-        const folder = body.folder || 'lumen';
-        const userToken = req?.user as IToken;
-        const publicId = userToken.accountId + '_' + Date.now().toString();
+    @UseInterceptors(
+        FileInterceptor('file', {
+            limits: {
+                fileSize: 5 * 1024 * 1024,
+            },
+        }),
+    )
+    async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: RequestWithPayload) {
+        if (!file) {
+            throw new BadRequestException('File is required');
+        }
 
-        const params = {
-            timestamp: timestamp,
-            folder: folder,
-            public_id: publicId,
-            upload_preset: uploadPreset
+        if (!file.mimetype.startsWith('image/')) {
+            throw new BadRequestException('File is not an image');
+        }
+
+        const result = await this.cloudinaryService.uploadBuffer(file, req.payload.accountId);
+
+        return {
+            url: result.secure_url,
+            public_id: result.public_id,
         };
-
-        // Generate signature
-        const signature = cloudinary.utils.api_sign_request(
-            params,
-            this.configService.get<string>('CLOUDINARY_SECRET_KEY') || ''
-        );
-
-        // Return the data needed for the frontend to construct the upload URL
-        res.json({
-            url: `https://api.cloudinary.com/v1_1/${this.configService.get<string>('CLOUDINARY_CLOUD_NAME')}/image/upload`,
-            formData: {
-                ...params,
-                api_key: this.configService.get<string>('CLOUDINARY_SECRET_KEY'),
-                signature: signature,
-                timestamp: timestamp
-            }
-        });
     }
+
+    // @Post('signed-upload-url')
+    // @UseGuards(JwtAuthGuard)
+    // getSignedUploadUrl(@Req() req: RequestWithPayload, @Res() res: Response) {
+    //     const timestamp = Math.round(new Date().getTime() / 1000);
+    //     const uploadPreset = 'lumen';
+    //     const folder = 'lumen';
+    //     const userToken = req?.payload as IToken;
+    //     const publicId = userToken.accountId + '_' + Date.now().toString();
+
+    //     const params = {
+    //         timestamp: timestamp,
+    //         folder: folder,
+    //         public_id: publicId,
+    //         upload_preset: uploadPreset
+    //     };
+
+    //     // Generate signature
+    //     const signature = cloudinary.utils.api_sign_request(
+    //         params,
+    //         this.configService.get<string>('CLOUDINARY_SECRET_KEY') || ''
+    //     );
+
+    //     // Return the data needed for the frontend to construct the upload URL
+    //     res.json({
+    //         data: {
+    //             url: `https://api.cloudinary.com/v1_1/${this.configService.get<string>('CLOUDINARY_CLOUD_NAME')}/image/upload`,
+    //             ...params,
+    //             signature: signature,
+    //         },
+    //         message: "Get signed upload url successfully"
+    //     });
+    // }
 
 }
