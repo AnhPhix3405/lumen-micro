@@ -62,4 +62,10 @@ export class User {
 
     @Column({ name: 'account_id', type: 'uuid', nullable: true })
     accountId: string;
+
+    @Column({name : "gender", type: 'varchar', length: 10, nullable: true})
+    gender: string;
+
+    @Column({name : "birthday", type: 'date', nullable: true})
+    birthday: Date;
 }
