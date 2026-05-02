@@ -18,13 +18,11 @@ export class EmailService {
         });
     }
 
-    async sendVerificationCode(email: string) {
-        const code = Math.floor(Math.random() * 1000000);
-        await redisClient.set(email, code, { EX: 60 * 3 });
+    async sendVerificationCode(email: string, code: string) {
         await this.transporter.sendMail({
             from: this.configService.get<string>("EMAIL_USER"),
             to: email,
-            subject: "Verification Code",
+            subject: "Your Verification Code",
             text: `Your verification code is: ${code}`,
         });
     }

@@ -4,6 +4,7 @@ import { AuthService } from "./auth.service";
 import type { IVerifyEmailDto } from "./dto/verify_email.dto";
 import { ILoginDto } from "./dto/login.dto";
 import type { Request, Response } from "express";
+import { IChangePasswordDto, IResetPasswordDto, IVerifyCodeDto } from "./dto/password_module.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -63,6 +64,38 @@ export class AuthController {
         res.clearCookie('refreshtoken');
         return res.status(HttpStatus.OK).json({
             message: "Logout successful",
+        });
+    }
+
+    @Post("change-password")
+    async changePassword(@Body() req : IChangePasswordDto, @Res() res : Response) {
+        await this.authService.changePassword(req.email, req.oldPassword, req.newPassword);
+        return res.status(HttpStatus.OK).json({
+        message: "Password changed successfully",
+        });
+    }
+
+    @Post("send-reset-password-code")
+    async sendResetPasswordCode(@Body() req : IVerifyCodeDto, @Res() res : Response) {
+        await this.authService.sendResetPasswordCode(req.email);
+        return res.status(HttpStatus.OK).json({
+        message: "Reset password code sent successfully",
+        });
+    }
+
+    @Post("verify-reset-password")
+    async verifyResetPassword(@Body() req : IVerifyCodeDto, @Res() res : Response) {
+        await this.authService.verifyResetPassword(req.email, req.code);
+        return res.status(HttpStatus.OK).json({
+        message: "Password reset verification successful",
+        });
+    }
+
+    @Post("reset-password")
+    async resetPassword(@Body() req : IResetPasswordDto, @Res() res : Response) {
+        await this.authService.resetPassword(req.email, req.resetToken, req.password);
+        return res.status(HttpStatus.OK).json({
+        message: "Password reset successfully",
         });
     }
 }
