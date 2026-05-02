@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Post, Req, Res, UnauthorizedException, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, Patch, Post, Req, Res, UnauthorizedException, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./users.entity";
 import { Repository } from "typeorm";
@@ -101,44 +101,39 @@ export class UsersController {
         }
 
         const result = await this.cloudinaryService.uploadBuffer(file, req.payload.accountId);
-
+        const user = await this.userRepository.findOne({ where: { accountId: req.payload.accountId } });
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
+        user.avatarUrl = result.secure_url;
+        await this.userRepository.save(user);
         return {
-            url: result.secure_url,
-            public_id: result.public_id,
+            data: {
+                url: result.secure_url,
+                public_id: result.public_id,
+            },
+            message: "Upload avatar successfully"
         };
     }
 
-    // @Post('signed-upload-url')
-    // @UseGuards(JwtAuthGuard)
-    // getSignedUploadUrl(@Req() req: RequestWithPayload, @Res() res: Response) {
-    //     const timestamp = Math.round(new Date().getTime() / 1000);
-    //     const uploadPreset = 'lumen';
-    //     const folder = 'lumen';
-    //     const userToken = req?.payload as IToken;
-    //     const publicId = userToken.accountId + '_' + Date.now().toString();
-
-    //     const params = {
-    //         timestamp: timestamp,
-    //         folder: folder,
-    //         public_id: publicId,
-    //         upload_preset: uploadPreset
-    //     };
-
-    //     // Generate signature
-    //     const signature = cloudinary.utils.api_sign_request(
-    //         params,
-    //         this.configService.get<string>('CLOUDINARY_SECRET_KEY') || ''
-    //     );
-
-    //     // Return the data needed for the frontend to construct the upload URL
-    //     res.json({
-    //         data: {
-    //             url: `https://api.cloudinary.com/v1_1/${this.configService.get<string>('CLOUDINARY_CLOUD_NAME')}/image/upload`,
-    //             ...params,
-    //             signature: signature,
-    //         },
-    //         message: "Get signed upload url successfully"
-    //     });
-    // }
+    @Patch("update-profile")
+    @UseGuards(JwtAuthGuard)
+    async updateProfile(@Req() req: RequestWithPayload, @Body() body: any) {
+        const user = await this.userRepository.findOne({ where: { accountId: req.payload.accountId } });
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
+        user.fullName = body.fullName;
+        user.bio = body.bio;
+        user.websiteUrl = body.websiteUrl;
+        user.location = body.location;
+        user.gender = body.gender;
+        user.birthday = body.birthday;
+        await this.userRepository.save(user);
+        return {
+            data: user,
+            message: "Update profile successfully"
+        };
+    }
 
 }
