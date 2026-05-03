@@ -5,8 +5,6 @@ import { AllExceptionFilter } from './exeptionFilter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new AllExceptionFilter());
-  const host = "localhost";
-  const port = 3000;
-  await app.listen(port, host);
+  await app.listen(3000, '127.0.0.1');
 }
 bootstrap();
