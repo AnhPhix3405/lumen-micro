@@ -6,7 +6,7 @@ import { ILoginDto } from "./dto/login.dto";
 import type { Request, Response } from "express";
 import { IChangePasswordDto, IResetPasswordDto, IVerifyCodeDto } from "./dto/password_module.dto";
 
-@Controller("auth")
+@Controller()
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
     @Post("register")
@@ -15,7 +15,7 @@ export class AuthController {
         return {
             data: account,
             message: "Account created successfully",
-            status : HttpStatus.CREATED
+            status: HttpStatus.CREATED
         }
     }
 
@@ -25,14 +25,14 @@ export class AuthController {
         return {
             data: account,
             message: "Account verified successfully",
-            status : HttpStatus.OK
+            status: HttpStatus.OK
         }
     }
 
     @Post("login")
-    async login(@Body() req: ILoginDto, @Res() res : Response) {
-        const {email, password} = req;
-        const {accessToken, refeshToken} = await this.authService.login(email, password);
+    async login(@Body() req: ILoginDto, @Res() res: Response) {
+        const { email, password } = req;
+        const { accessToken, refeshToken } = await this.authService.login(email, password);
         res.cookie('refreshtoken', refeshToken, {
             httpOnly: true,
             sameSite: 'strict',
@@ -40,27 +40,27 @@ export class AuthController {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         })
         return res.status(HttpStatus.OK).json({
-        data: { accessToken },
-        message: "Login successful",
+            data: { accessToken },
+            message: "Login successful",
         });
     }
 
     @Post("refresh")
-    async refresh(@Req() req : Request, @Res() res : Response) {
+    async refresh(@Req() req: Request, @Res() res: Response) {
         const refreshToken = req.cookies.refreshtoken;
         console.log(refreshToken);
-        if(!refreshToken) {
+        if (!refreshToken) {
             throw new BadRequestException("Refresh token not found");
         }
         const newAccessToken = await this.authService.refresh(refreshToken);
         return res.status(HttpStatus.OK).json({
-        data: { accessToken: newAccessToken },
-        message: "Refresh token successful",
+            data: { accessToken: newAccessToken },
+            message: "Refresh token successful",
         });
     }
 
     @Post("logout")
-    async logout(@Req() req : Request, @Res() res : Response) {
+    async logout(@Req() req: Request, @Res() res: Response) {
         res.clearCookie('refreshtoken');
         return res.status(HttpStatus.OK).json({
             message: "Logout successful",
@@ -68,34 +68,34 @@ export class AuthController {
     }
 
     @Post("change-password")
-    async changePassword(@Body() req : IChangePasswordDto, @Res() res : Response) {
+    async changePassword(@Body() req: IChangePasswordDto, @Res() res: Response) {
         await this.authService.changePassword(req.email, req.oldPassword, req.newPassword);
         return res.status(HttpStatus.OK).json({
-        message: "Password changed successfully",
+            message: "Password changed successfully",
         });
     }
 
     @Post("send-reset-password-code")
-    async sendResetPasswordCode(@Body() req : IVerifyCodeDto, @Res() res : Response) {
+    async sendResetPasswordCode(@Body() req: IVerifyCodeDto, @Res() res: Response) {
         await this.authService.sendResetPasswordCode(req.email);
         return res.status(HttpStatus.OK).json({
-        message: "Reset password code sent successfully",
+            message: "Reset password code sent successfully",
         });
     }
 
     @Post("verify-reset-password")
-    async verifyResetPassword(@Body() req : IVerifyCodeDto, @Res() res : Response) {
+    async verifyResetPassword(@Body() req: IVerifyCodeDto, @Res() res: Response) {
         await this.authService.verifyResetPassword(req.email, req.code);
         return res.status(HttpStatus.OK).json({
-        message: "Password reset verification successful",
+            message: "Password reset verification successful",
         });
     }
 
     @Post("reset-password")
-    async resetPassword(@Body() req : IResetPasswordDto, @Res() res : Response) {
+    async resetPassword(@Body() req: IResetPasswordDto, @Res() res: Response) {
         await this.authService.resetPassword(req.email, req.resetToken, req.password);
         return res.status(HttpStatus.OK).json({
-        message: "Password reset successfully",
+            message: "Password reset successfully",
         });
     }
 }

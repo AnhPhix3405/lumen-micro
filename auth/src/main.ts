@@ -21,6 +21,8 @@ async function bootstrap() {
   } catch (error) {
     console.error("Redis connection failed", error);
   }
-  await app.listen(process.env.PORT ?? 3000);
+  const host = "localhost";
+  const port = 3001;
+  await app.listen(port, host);
 }
 bootstrap();

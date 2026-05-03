@@ -21,7 +21,7 @@ export class AllExceptionFilter implements ExceptionFilter {
       message = typeof res === 'string' ? res : res['message'];
     }
 
-    if(exception instanceof BadRequestException) {
+    if (exception instanceof BadRequestException) {
       status = exception.getStatus();
       const res = exception.getResponse();
       message = typeof res === 'string' ? res : res['message'];
