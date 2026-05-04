@@ -1,5 +1,5 @@
 import { BadRequestException, Body, Controller, HttpStatus, Post, Req, Res } from "@nestjs/common";
-import type { IRegisterDto } from "./dto/register.dto";
+import { IRegisterDto } from "./dto/register.dto";
 import { AuthService } from "./auth.service";
 import type { IVerifyEmailDto } from "./dto/verify_email.dto";
 import { ILoginDto } from "./dto/login.dto";
@@ -10,8 +10,8 @@ import { IChangePasswordDto, IResetPasswordDto, IVerifyCodeDto } from "./dto/pas
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
     @Post("register")
-    async register(@Body() req: IRegisterDto) {
-        const account = await this.authService.createAccount(req.email, req.password);
+    async register(@Body() dto: any) {
+        const account = await this.authService.createAccount(dto.email, dto.password);
         return {
             data: account,
             message: "Account created successfully",

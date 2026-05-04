@@ -31,11 +31,11 @@ export class AuthService {
         const code = Math.floor(1000 + Math.random() * 9000).toString();
         await redisClient.set(`verify_email:${email}`, code);
         await redisClient.expire(`verify_email:${email}`, 300);
-        await this.emailService.sendVerificationCode(email, code);
-        // await this.client.emit('account_created', {
-        //     accountId: account.id,
-        //     email: account.email,
-        // });
+        this.emailService.sendVerificationCode(email, code);
+        this.client.emit('account_created', {
+            accountId: account.id,
+            email: account.email,
+        });
         return account;
     }
 

@@ -2,6 +2,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AuthAccount } from "./accounts.entity";
 import { Repository } from "typeorm";
 import { CreateDto } from "./dto/crud.dto";
+import { BadRequestException } from "@nestjs/common";
 
 export class AccountsService {
     constructor(
@@ -11,10 +12,10 @@ export class AccountsService {
 
     }
 
-    async createAccount(newAccount: CreateDto) : Promise<AuthAccount> {
+    async createAccount(newAccount: CreateDto): Promise<AuthAccount> {
         const accountExist = await this.accountsRepository.findOne({ where: { email: newAccount.email } });
         if (accountExist) {
-            throw new Error("Account already exists");
+            throw new BadRequestException("Account already exists");
         }
         const account = this.accountsRepository.create(newAccount);
         const savedAccount = await this.accountsRepository.save(account);

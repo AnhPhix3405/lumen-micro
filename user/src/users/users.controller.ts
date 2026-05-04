@@ -10,13 +10,15 @@ import { IToken } from "src/intefaces/token.interface";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { CloudinaryService } from "src/upload/cloudinary.service";
 import type { RequestWithPayload } from "src/intefaces/request.interface";
-@Controller('/user')
+import { UsersService } from "./users.service";
+@Controller()
 export class UsersController {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
         private readonly configService: ConfigService,
         private readonly cloudinaryService: CloudinaryService,
+        private readonly userService: UsersService,
     ) { }
 
     @Get()
@@ -133,6 +135,14 @@ export class UsersController {
         return {
             data: user,
             message: "Update profile successfully"
+        };
+    }
+
+    @Post("follow")
+    async follow(@Body() body: any) {
+        await this.userService.followUser(body.userId, body.followingId);
+        return {
+            message: "Follow successfully"
         };
     }
 
