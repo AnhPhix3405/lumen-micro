@@ -75,7 +75,7 @@ export class AuthService {
             payload,
         }, privateKey, {
             algorithm: 'RS256',
-            expiresIn: '15m',
+            expiresIn: '7d',
         });
 
         const refeshToken = jwt.sign({

@@ -31,10 +31,6 @@ export class User {
     @Column({ name: 'website_url', type: 'text', nullable: true })
     websiteUrl: string;
 
-    @Index({ unique: true })
-    @Column({ name: 'github_username', type: 'varchar', length: 255, nullable: true, unique: true })
-    githubUsername: string;
-
     @Column({ type: 'varchar', length: 255, nullable: true })
     location: string;
 
@@ -63,9 +59,9 @@ export class User {
     @Column({ name: 'account_id', type: 'uuid', nullable: true })
     accountId: string;
 
-    @Column({name : "gender", type: 'varchar', length: 10, nullable: true})
+    @Column({ name: "gender", type: 'varchar', length: 10, nullable: true })
     gender: string;
 
-    @Column({name : "birthday", type: 'date', nullable: true})
+    @Column({ name: "birthday", type: 'date', nullable: true })
     birthday: Date;
 }

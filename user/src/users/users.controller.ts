@@ -11,6 +11,7 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { CloudinaryService } from "src/upload/cloudinary.service";
 import type { RequestWithPayload } from "src/intefaces/request.interface";
 import { UsersService } from "./users.service";
+import { UpdateDto } from "./dto/update.dto";
 @Controller()
 export class UsersController {
     constructor(
@@ -120,20 +121,9 @@ export class UsersController {
 
     @Patch("update-profile")
     @UseGuards(JwtAuthGuard)
-    async updateProfile(@Req() req: RequestWithPayload, @Body() body: any) {
-        const user = await this.userRepository.findOne({ where: { accountId: req.payload.accountId } });
-        if (!user) {
-            throw new BadRequestException('User not found');
-        }
-        user.fullName = body.fullName;
-        user.bio = body.bio;
-        user.websiteUrl = body.websiteUrl;
-        user.location = body.location;
-        user.gender = body.gender;
-        user.birthday = body.birthday;
-        await this.userRepository.save(user);
+    async updateProfile(@Req() req: RequestWithPayload, @Body() body: UpdateDto) {
+        await this.userService.updateProfile(req.payload.accountId, body);
         return {
-            data: user,
             message: "Update profile successfully"
         };
     }

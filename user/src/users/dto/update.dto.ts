@@ -17,10 +17,6 @@ export class UpdateDto {
 
     @IsString()
     @IsOptional()
-    githubUsername: string;
-
-    @IsString()
-    @IsOptional()
     location: string;
 
     @IsString()
