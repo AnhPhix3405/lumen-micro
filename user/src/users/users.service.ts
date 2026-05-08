@@ -91,4 +91,12 @@ export class UsersService {
         const followerIds = userFollows.map(userFollow => userFollow.userId);
         return await this.userRepository.find({ where: { id: In(followerIds) } });
     }
+
+    async getUserByAccountId(accountId: string): Promise<User> {
+        const user = await this.userRepository.findOne({ where: { accountId: accountId } });
+        if (!user) {
+            throw new BadRequestException('User not found');
+        }
+        return user;
+    }
 }

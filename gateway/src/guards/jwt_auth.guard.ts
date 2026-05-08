@@ -23,8 +23,7 @@ export class JwtAuthGuard implements CanActivate {
             // Attach decoded payload to request object for downstream use
             const publicKey = fs.readFileSync(path.join(process.cwd(), 'src/rs256key/public.pem'));
             const decoded = jwt.verify(token, publicKey);
-            request.payload = decoded.payload;
-
+            request.payload = decoded;
             return true;
         } catch (error) {
             // Handle invalid or expired tokens

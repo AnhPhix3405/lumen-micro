@@ -11,6 +11,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { AuthAccount } from "src/accounts/accounts.entity";
 import { Repository } from "typeorm";
 import { randomBytes } from "crypto";
+import axios from "axios";
 @Injectable()
 export class AuthService {
     constructor(
@@ -66,9 +67,14 @@ export class AuthService {
         if (!isPasswordValid) {
             throw new BadRequestException("Invalid password");
         }
+        const response = await axios.post(`${this.configService.get<string>('USER_SERVICE_URL')}/get-user-by-account-id`, {
+            accountId: existAccount.id,
+        });
+        const userId = response.data.userId;
         const payload = {
             accountId: existAccount.id,
             email: existAccount.email,
+            userId: userId,
         }
         const privateKey = fs.readFileSync('src/rs256key/private.pem');
         const accessToken = jwt.sign({

@@ -23,6 +23,7 @@ export class UsersController {
     ) { }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     async findAll(): Promise<User[]> {
         return this.userRepository.find();
     }
@@ -133,6 +134,15 @@ export class UsersController {
         await this.userService.followUser(body.userId, body.followingId);
         return {
             message: "Follow successfully"
+        };
+    }
+
+    @Post("get-user-by-account-id")
+    async getUserById(@Body() body: any) {
+        const user = await this.userService.getUserByAccountId(body.accountId);
+        return {
+            userId: user.id,
+            message: "Get user successfully"
         };
     }
 
