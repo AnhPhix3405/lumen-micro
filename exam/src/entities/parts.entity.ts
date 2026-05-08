@@ -19,6 +19,9 @@ export class Part {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ name: 'exam_id', type: 'uuid' })
+  examId: string;
+
   @Index('idx_parts_exam_id')
   @ManyToOne(() => Exam, (exam) => exam.parts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'exam_id' })
