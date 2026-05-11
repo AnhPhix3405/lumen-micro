@@ -17,5 +17,4 @@ export class ExamController {
         console.log(body)
         return this.examService.update(body);
     }
-
 }

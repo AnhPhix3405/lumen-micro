@@ -18,9 +18,6 @@ export class CreatePartDto {
     @IsNotEmpty()
     score: number;
 
-    @IsString()
-    @IsNotEmpty()
-    examId: string;
 }
 
 export class UpdatePartDto {

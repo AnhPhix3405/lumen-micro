@@ -24,14 +24,11 @@ export class QuestionGroup {
   @JoinColumn({ name: 'part_id' })
   part: Part;
 
-  @Column({ type: 'varchar', length: 20, default: 'single' })
-  type: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  title: string;
-
   @Column({ type: 'text', nullable: true })
   content: string;
+
+  @Column({ name: 'type', type: 'varchar', nullable: true })
+  type: string;
 
   @Column({ name: 'audio_url', type: 'text', nullable: true })
   audioUrl: string;

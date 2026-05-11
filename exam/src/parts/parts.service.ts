@@ -4,17 +4,28 @@ import { Part } from "src/entities/parts.entity";
 import { BodyTokenPayload } from "src/interfaces/payload";
 import { Exam } from "src/entities/exams.entity";
 import { Repository } from "typeorm";
+import { Injectable } from "@nestjs/common";
 
-
+@Injectable()
 export class PartsService {
     constructor(@InjectRepository(Part) private readonly partRepository: Repository<Part>,
         @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
     ) { }
 
-    async create(params: CreatePartDto) {
+    async create(params: CreatePartDto & BodyTokenPayload & { examId: string }) {
+        const exam = await this.examRepository.findOne({ where: { id: params.examId } });
+        if (!exam) {
+            throw new Error("Exam not found");
+        }
+        if (exam.userId !== params.payload.userId) {
+            throw new Error("Unauthorized");
+        }
         const part = this.partRepository.create({
             name: params.name,
-
+            examId: params.examId,
+            type: params.type,
+            instruction: params.instruction,
+            score: params.score,
         });
         return await this.partRepository.save(part);
     }
@@ -49,5 +60,10 @@ export class PartsService {
             throw new Error("Unauthorized");
         }
         return await this.partRepository.delete(part);
+    }
+
+
+    async findOneById(id: string) {
+        return await this.partRepository.findOne({ where: { id } , relations: { exam: true }});
     }
 }

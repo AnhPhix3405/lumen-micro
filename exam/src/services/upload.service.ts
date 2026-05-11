@@ -6,30 +6,34 @@ import {
 import busboy from "busboy";
 import cloudinary from "cloudinary";
 import { Request } from "express";
+interface IUploadConfig {
+    MAX_FILE_SIZE: number;
+    MAX_FILES: number;
+}
 
-const UPLOAD_CONFIG = {
-    MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-    MAX_FILES: 3,
-    FOLDER: "lumen/question-groups",
-} as const;
 
 @Injectable()
 export class UploadService {
-    async uploadQuestionGroupMedia(
-        req: Request,
-    ): Promise<cloudinary.UploadApiResponse[]> {
-        return this.processUpload(req);
+    async uploadQuestionGroupAudio(
+        req: Request, userId: string
+    ): Promise<string> {
+        const uploadConfig: IUploadConfig = {
+            MAX_FILE_SIZE: 5 * 1024 * 1024,
+            MAX_FILES: 1,
+        };
+        const url = await this.processUpload(req, userId, "question-groups", uploadConfig);
+        return url[0].secure_url;
     }
 
     private processUpload(
-        req: Request,
+        req: Request, userId: string, folderPath: string, uploadConfig: IUploadConfig
     ): Promise<cloudinary.UploadApiResponse[]> {
         return new Promise((resolve, reject) => {
             const bb = busboy({
                 headers: req.headers,
                 limits: {
-                    fileSize: UPLOAD_CONFIG.MAX_FILE_SIZE,
-                    files: UPLOAD_CONFIG.MAX_FILES,
+                    fileSize: uploadConfig.MAX_FILE_SIZE,
+                    files: uploadConfig.MAX_FILES,
                 },
             });
 
@@ -43,7 +47,7 @@ export class UploadService {
                     return;
                 }
 
-                const uploadPromise = this.handleFileUpload(file)
+                const uploadPromise = this.handleFileUpload(file, userId, folderPath, uploadConfig)
                     .catch((error) => {
                         aborted = true;
                         reject(error);
@@ -72,7 +76,7 @@ export class UploadService {
 
                 reject(
                     new BadRequestException(
-                        `Maximum ${UPLOAD_CONFIG.MAX_FILES} files allowed`,
+                        `Maximum ${uploadConfig.MAX_FILES} files allowed`,
                     ),
                 );
             });
@@ -87,13 +91,13 @@ export class UploadService {
     }
 
     private handleFileUpload(
-        file: NodeJS.ReadableStream,
+        file: NodeJS.ReadableStream, userId: string, folderPath: string, uploadConfig: IUploadConfig
     ): Promise<cloudinary.UploadApiResponse> {
         return new Promise((resolve, reject) => {
             const uploadStream =
                 cloudinary.v2.uploader.upload_stream(
                     {
-                        folder: UPLOAD_CONFIG.FOLDER,
+                        folder: `lumen/${userId}/${folderPath}`,
                         resource_type: "auto",
                     },
                     (error, result) => {
@@ -118,7 +122,7 @@ export class UploadService {
 
                 reject(
                     new BadRequestException(
-                        `File size exceeded ${UPLOAD_CONFIG.MAX_FILE_SIZE / 1024 / 1024}MB`,
+                        `File size exceeded ${uploadConfig.MAX_FILE_SIZE / 1024 / 1024}MB`,
                     ),
                 );
             });
