@@ -26,7 +26,7 @@ export class PartsService {
             type: params.type,
             instruction: params.instruction,
             score: params.score,
-	    partOrder: params.partOrder
+	    part_order: params.partOrder
         });
         return await this.partRepository.save(part);
     }

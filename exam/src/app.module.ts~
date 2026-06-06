@@ -3,12 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExamModule } from './exams/exams.module';
 import { QuestionsModule } from './questions/questions.module';
-import { PartsModule } from './parts/parts.module';
 @Module({
   imports: [
     ExamModule,
     QuestionsModule,
-    PartsModule,
     ConfigModule.forRoot({
       isGlobal: true
     }),

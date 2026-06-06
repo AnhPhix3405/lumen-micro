@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common";
 import { JwtAuthGuard } from "./guards/jwt_auth.guard";
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
@@ -11,6 +11,14 @@ export class ExamController {
     async createExam(@Body() body: any, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
         const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}`, body);
+        return (await result).data;
+    }
+
+    @Post(":examId/part")
+    @UseGuards(JwtAuthGuard)
+    async createPart(@Body() body: any, @Param("examId") examId: string, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload);
+        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/${examId}`, body);
         return (await result).data;
     }
 }
