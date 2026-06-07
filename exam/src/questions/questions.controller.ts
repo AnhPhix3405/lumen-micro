@@ -3,16 +3,16 @@ import { QuestionsService } from "./questions.service";
 import { CreateQuestionDto, UpdateQuestionDto } from "src/dto/question_module.dto";
 import type { BodyTokenPayload } from "src/interfaces/payload";
 
-@Controller()
+@Controller("question")
 export class QuestionsController {
     constructor(private readonly questionsService: QuestionsService) { }
 
-    @Post("")
+    @Post("/:questionGroupId")
     async createQuestion(@Body() body: CreateQuestionDto & BodyTokenPayload) {
         return this.questionsService.create(body);
     }
 
-    @Patch("")
+    @Patch(":/questionId")
     async updateQuestion(@Body() body: UpdateQuestionDto & BodyTokenPayload) {
         return this.questionsService.update(body);
     }

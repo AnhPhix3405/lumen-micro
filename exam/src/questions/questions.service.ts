@@ -5,9 +5,8 @@ import { Question } from "src/entities/questions.entity";
 import { QuestionGroup } from "src/entities/question-groups.entity";
 import { Part } from "src/entities/parts.entity";
 import { Exam } from "src/entities/exams.entity";
-import { CreateQuestionDto, UpdateQuestionDto } from "src/dto/question_module.dto";
+import { CreateQuestionDto, CreateQuestionInGroupDto, UpdateQuestionDto } from "src/dto/question_module.dto";
 import type { BodyTokenPayload } from "src/interfaces/payload";
-
 @Injectable()
 export class QuestionsService {
     constructor(
@@ -17,7 +16,7 @@ export class QuestionsService {
         @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
     ) { }
 
-    async create(body: CreateQuestionDto & BodyTokenPayload) {
+    async createInGroup(body: CreateQuestionInGroupDto & BodyTokenPayload) {
         const questionGroup = await this.questionGroupRepository.findOne({
             where: { id: body.questionGroupId },
             relations: { part: { exam: true } },
@@ -31,6 +30,32 @@ export class QuestionsService {
 
         const question = this.questionRepository.create({
             questionGroup: { id: body.questionGroupId },
+            type: body.type,
+            content: body.content,
+            explanation: body.explanation,
+            audioUrl: body.audioUrl,
+            imageUrl: body.imageUrl,
+            options: body.options,
+            correctOption: body.correctOption,
+            score: body.score ?? 1,
+            questionOrder: body.questionOrder,
+        });
+        return await this.questionRepository.save(question);
+    }
+
+    async create(body: CreateQuestionDto & BodyTokenPayload) {
+        const part = await this.partRepository.findOne({
+            where: { id: body.partId },
+            relations: { exam: true },
+        });
+        if (!part) {
+            throw new Error("Part not found");
+        }
+        if (part.exam.userId !== body.payload.userId) {
+            throw new Error("Unauthorized");
+        }
+        const question = this.questionRepository.create({
+            partId: body.partId,
             type: body.type,
             content: body.content,
             explanation: body.explanation,

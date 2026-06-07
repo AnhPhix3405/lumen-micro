@@ -4,29 +4,31 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExamModule } from './exams/exams.module';
 import { QuestionsModule } from './questions/questions.module';
 import { PartsModule } from './parts/parts.module';
+import { QuestionGroupModule } from './question_groups/question_groups.module';
 @Module({
   imports: [
     ExamModule,
     QuestionsModule,
     PartsModule,
+    QuestionGroupModule,
     ConfigModule.forRoot({
       isGlobal: true
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: configService.get<string>('DB_PASSWORD'),
-      database: 'lumen',
-      schema: "exam_service",
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
-    inject: [ConfigService],
-  })
+        type: 'postgres',
+        host: 'localhost',
+        port: 5432,
+        username: 'postgres',
+        password: configService.get<string>('DB_PASSWORD'),
+        database: 'lumen',
+        schema: "exam_service",
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
+    })
   ],
 })
 export class AppModule { }

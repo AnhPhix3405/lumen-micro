@@ -28,7 +28,7 @@ export class QuestionGroupsService {
             groupOrder: body.groupOrder,
             content: body.content,
             transcript: body.transcript,
-            type : body.type,
+            type: body.type,
         })
         return questionGroup
     }
@@ -39,8 +39,13 @@ export class QuestionGroupsService {
 
     async uploadQuestionGroupAudio(
         req: Request,
-        userId: string
+        userId: string,
+        questionGroupId: string
     ): Promise<string> {
-        return this.uploadService.uploadQuestionGroupAudio(req, userId);
+        // const reproduced_url = await this.uploadService.uploadQuestionGroupAudio(req, userId);
+        // const updateResult = await this.questionGroupRepository.update({ id: questionGroupId }, { audioUrl: reproduced_url });
+        // console.log(updateResult)
+        // return reproduced_url;
+        return "";
     }
 }

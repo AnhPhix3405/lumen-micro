@@ -26,6 +26,9 @@ export class Question {
   @JoinColumn({ name: 'question_group_id' })
   questionGroup: QuestionGroup;
 
+  @Column({ name: "part_id", type: 'uuid', nullable: true })
+  partId: string;
+
   @Index('idx_questions_type')
   @Column({ type: 'varchar', length: 30 })
   type: string;

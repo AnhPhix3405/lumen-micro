@@ -2,24 +2,36 @@ import {
     BadRequestException,
     Injectable,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 import busboy from "busboy";
 import cloudinary from "cloudinary";
+import { info } from "console";
 import { Request } from "express";
 interface IUploadConfig {
     MAX_FILE_SIZE: number;
     MAX_FILES: number;
+    ALLOWED_MIME_TYPES?: string[];
 }
 
 
 @Injectable()
 export class UploadService {
+    constructor(private readonly config: ConfigService) {
+        cloudinary.v2.config({
+            cloud_name: this.config.get<string>("CLOUDINARY_NAME"),
+            api_key: this.config.get<string>("CLOUDINARY_API_KEY"),
+            api_secret: this.config.get<string>("CLOUDINARY_API_SECRET"),
+        })
+    }
     async uploadQuestionGroupAudio(
         req: Request, userId: string
     ): Promise<string> {
         const uploadConfig: IUploadConfig = {
             MAX_FILE_SIZE: 5 * 1024 * 1024,
             MAX_FILES: 1,
+            ALLOWED_MIME_TYPES: ["audio/mpeg"],
+
         };
         const url = await this.processUpload(req, userId, "question-groups", uploadConfig);
         return url[0].secure_url;
@@ -41,10 +53,21 @@ export class UploadService {
 
             let aborted = false;
 
-            bb.on("file", (_field, file) => {
+            bb.on("file", (_field, file, info) => {
                 if (aborted) {
                     file.resume();
                     return;
+                }
+                const mimeType = info && typeof info === 'object' ? info.mimeType : (arguments[4] as string);
+                if (uploadConfig.ALLOWED_MIME_TYPES && !uploadConfig.ALLOWED_MIME_TYPES.includes(mimeType)) {
+                    aborted = true;
+                    file.resume(); // Giải phóng stream của file không hợp lệ này
+
+                    return reject(
+                        new BadRequestException(
+                            `Invalid file type. Only ${uploadConfig.ALLOWED_MIME_TYPES.join(", ")} files are allowed.`
+                        )
+                    );
                 }
 
                 const uploadPromise = this.handleFileUpload(file, userId, folderPath, uploadConfig)
