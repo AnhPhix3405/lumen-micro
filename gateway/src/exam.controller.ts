@@ -55,4 +55,21 @@ export class ExamController {
         );
         return (await result).data;
     }
+
+    @Post("question-group/:questionGroupId/question")
+    @UseGuards(JwtAuthGuard)
+    async createQuestionInGroup(@Body() body: any, @Param("questionGroupId") questionGroupId: string, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload);
+        Object.assign(body, { questionGroupId });
+        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question-group/${questionGroupId}/question`, body);
+        return (await result).data;
+    }
+
+    @Post("part/:partId/question")
+    @UseGuards(JwtAuthGuard)
+    async createQuestion(@Body() body: any, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload);
+        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question/part/${partId}`, body);
+        return (await result).data;
+    }
 }

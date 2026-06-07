@@ -16,55 +16,55 @@ export class QuestionsService {
         @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
     ) { }
 
-    async createInGroup(body: CreateQuestionInGroupDto & BodyTokenPayload) {
+    async createInGroup(params: CreateQuestionInGroupDto & BodyTokenPayload) {
         const questionGroup = await this.questionGroupRepository.findOne({
-            where: { id: body.questionGroupId },
+            where: { id: params.questionGroupId },
             relations: { part: { exam: true } },
         });
         if (!questionGroup) {
             throw new Error("Question group not found");
         }
-        if (questionGroup.part.exam.userId !== body.payload.userId) {
+        if (questionGroup.part.exam.userId !== params.payload.userId) {
             throw new Error("Unauthorized");
         }
 
         const question = this.questionRepository.create({
-            questionGroup: { id: body.questionGroupId },
-            type: body.type,
-            content: body.content,
-            explanation: body.explanation,
-            audioUrl: body.audioUrl,
-            imageUrl: body.imageUrl,
-            options: body.options,
-            correctOption: body.correctOption,
-            score: body.score ?? 1,
-            questionOrder: body.questionOrder,
+            questionGroup: { id: params.questionGroupId },
+            type: params.type,
+            content: params.content,
+            explanation: params.explanation,
+            audioUrl: params.audioUrl,
+            imageUrl: params.imageUrl,
+            options: params.options,
+            correctOption: params.correctOption,
+            score: params.score ?? 1,
+            questionOrder: params.questionOrder,
         });
         return await this.questionRepository.save(question);
     }
 
-    async create(body: CreateQuestionDto & BodyTokenPayload) {
+    async create(params: CreateQuestionDto & BodyTokenPayload) {
         const part = await this.partRepository.findOne({
-            where: { id: body.partId },
+            where: { id: params.partId },
             relations: { exam: true },
         });
         if (!part) {
             throw new Error("Part not found");
         }
-        if (part.exam.userId !== body.payload.userId) {
+        if (part.exam.userId !== params.payload.userId) {
             throw new Error("Unauthorized");
         }
         const question = this.questionRepository.create({
-            partId: body.partId,
-            type: body.type,
-            content: body.content,
-            explanation: body.explanation,
-            audioUrl: body.audioUrl,
-            imageUrl: body.imageUrl,
-            options: body.options,
-            correctOption: body.correctOption,
-            score: body.score ?? 1,
-            questionOrder: body.questionOrder,
+            partId: params.partId,
+            type: params.type,
+            content: params.content,
+            explanation: params.explanation,
+            audioUrl: params.audioUrl,
+            imageUrl: params.imageUrl,
+            options: params.options,
+            correctOption: params.correctOption,
+            score: params.score ?? 1,
+            questionOrder: params.questionOrder,
         });
         return await this.questionRepository.save(question);
     }
