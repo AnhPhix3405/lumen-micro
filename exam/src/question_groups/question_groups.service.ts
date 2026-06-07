@@ -23,13 +23,14 @@ export class QuestionGroupsService {
         if (part.exam.userId !== body.payload.userId) {
             throw new Error("Unauthorized");
         }
-        const questionGroup = await this.questionGroupRepository.save({
+        const questionGroup = await this.questionGroupRepository.create({
             partId: body.partId,
             groupOrder: body.groupOrder,
             content: body.content,
             transcript: body.transcript,
             type: body.type,
         })
+        await this.questionGroupRepository.save(questionGroup)
         return questionGroup
     }
 

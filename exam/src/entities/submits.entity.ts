@@ -30,6 +30,9 @@ export class Submit {
   @Column({ type: 'varchar', length: 20, default: 'in_progress' })
   status: string;
 
+  @Column({ name: 'time_limit_seconds', type: 'int' })
+  timeLimitSeconds: number;
+
   @Column({ name: 'started_at', type: 'timestamp', default: () => 'NOW()' })
   startedAt: Date;
 

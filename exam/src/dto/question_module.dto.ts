@@ -7,10 +7,6 @@ export class CreateQuestionInGroupDto {
 
     @IsString()
     @IsNotEmpty()
-    type: string;
-
-    @IsString()
-    @IsNotEmpty()
     content: string;
 
     @IsString()
@@ -48,10 +44,6 @@ export class CreateQuestionDto {
 
     @IsString()
     @IsNotEmpty()
-    type: string;
-
-    @IsString()
-    @IsNotEmpty()
     content: string;
 
     @IsString()
@@ -85,10 +77,6 @@ export class UpdateQuestionDto {
     @IsString()
     @IsNotEmpty()
     questionId: string;
-
-    @IsString()
-    @IsOptional()
-    type?: string;
 
     @IsString()
     @IsOptional()

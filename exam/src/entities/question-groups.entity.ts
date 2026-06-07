@@ -24,6 +24,10 @@ export class QuestionGroup {
   @JoinColumn({ name: 'part_id' })
   part: Part;
 
+  @Column({ name: 'part_id', type: 'uuid' })
+  partId: string;
+
+
   @Column({ type: 'text', nullable: true })
   content: string;
 

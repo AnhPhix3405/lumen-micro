@@ -8,13 +8,11 @@ export class ExamController {
     constructor(private readonly examService: ExamService) { }
     @Post("")
     async createExam(@Body() body: CreateExamDto & BodyTokenPayload) {
-        console.log(body)
         return this.examService.create(body);
     }
 
     @Patch("")
     async updateExam(@Body() body: UpdateExamDto & BodyTokenPayload) {
-        console.log(body)
         return this.examService.update(body);
     }
 }

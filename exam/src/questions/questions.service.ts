@@ -24,13 +24,19 @@ export class QuestionsService {
         if (!questionGroup) {
             throw new Error("Question group not found");
         }
+        if (!questionGroup.part) {
+            throw new Error("Question group is not associated with a part");
+        }
+        if (!questionGroup.part.exam) {
+            throw new Error("Part is not associated with an exam");
+        }
         if (questionGroup.part.exam.userId !== params.payload.userId) {
             throw new Error("Unauthorized");
         }
 
         const question = this.questionRepository.create({
             questionGroup: { id: params.questionGroupId },
-            type: params.type,
+            type: "group",
             content: params.content,
             explanation: params.explanation,
             audioUrl: params.audioUrl,
@@ -56,7 +62,7 @@ export class QuestionsService {
         }
         const question = this.questionRepository.create({
             partId: params.partId,
-            type: params.type,
+            type: "separate",
             content: params.content,
             explanation: params.explanation,
             audioUrl: params.audioUrl,
@@ -81,7 +87,6 @@ export class QuestionsService {
             throw new Error("Unauthorized");
         }
 
-        if (body.type !== undefined) question.type = body.type;
         if (body.content !== undefined) question.content = body.content;
         if (body.explanation !== undefined) question.explanation = body.explanation;
         if (body.audioUrl !== undefined) question.audioUrl = body.audioUrl;
