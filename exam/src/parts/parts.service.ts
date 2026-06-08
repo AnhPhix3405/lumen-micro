@@ -60,7 +60,7 @@ export class PartsService {
         if (exam.userId !== params.payload.userId) {
             throw new Error("Unauthorized");
         }
-        return await this.partRepository.delete(part);
+        return await this.partRepository.delete(part.id);
     }
 
 

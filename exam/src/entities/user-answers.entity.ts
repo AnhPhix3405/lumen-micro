@@ -35,13 +35,13 @@ export class UserAnswer {
   answerType: string;
 
   @Column({ name: 'selected_option', type: 'jsonb', nullable: true })
-  selectedOption: object;
+  selectedOption: object | null;
 
   @Column({ name: 'answer_content', type: 'text', nullable: true })
-  answerContent: string;
+  answerContent: string | null;
 
   @Column({ name: 'audio_url', type: 'text', nullable: true })
-  audioUrl: string;
+  audioUrl: string | null;
 
   @Column({ name: 'is_correct', type: 'boolean', nullable: true })
   isCorrect: boolean;

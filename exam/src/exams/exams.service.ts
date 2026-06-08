@@ -48,7 +48,7 @@ export class ExamService {
         if (exam.userId !== params.payload.userId) {
             throw new Error("Unauthorized");
         }
-        return await this.examRepository.delete(exam);
+        return await this.examRepository.delete(params.examId);
     }
 
     async findOnePublished(params: { examId: string }) {

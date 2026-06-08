@@ -5,12 +5,14 @@ import { ExamModule } from './exams/exams.module';
 import { QuestionsModule } from './questions/questions.module';
 import { PartsModule } from './parts/parts.module';
 import { QuestionGroupModule } from './question_groups/question_groups.module';
+import { SubmitsModule } from './submits/submits.module';
 @Module({
   imports: [
     ExamModule,
     QuestionsModule,
     PartsModule,
     QuestionGroupModule,
+    SubmitsModule,
     ConfigModule.forRoot({
       isGlobal: true
     }),

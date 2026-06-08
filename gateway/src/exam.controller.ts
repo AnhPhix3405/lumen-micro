@@ -10,6 +10,7 @@ export class ExamController {
     constructor(private readonly config: ConfigService) { }
     @Post()
     @UseGuards(JwtAuthGuard)
+    //@desc create exam
     async createExam(@Body() body: any, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
         const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}`, body);
@@ -28,7 +29,6 @@ export class ExamController {
     @UseGuards(JwtAuthGuard)
     async createQuestionGroup(@Body() body: any, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
-        Object.assign(body, { partId });
         const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question-group/${partId}`, body);
         return (await result).data;
     }
@@ -61,7 +61,7 @@ export class ExamController {
     async createQuestionInGroup(@Body() body: any, @Param("questionGroupId") questionGroupId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
         Object.assign(body, { questionGroupId });
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question-group/${questionGroupId}/question`, body);
+        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question/question-group/${questionGroupId}`, body);
         return (await result).data;
     }
 
@@ -70,6 +70,31 @@ export class ExamController {
     async createQuestion(@Body() body: any, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
         const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question/part/${partId}`, body);
+        return (await result).data;
+    }
+
+
+    @Post("create-session/:examId")
+    @UseGuards(JwtAuthGuard)
+    async createSubmit(@Body() body: any, @Req() req: Request & { payload: TokenPayload }, @Param("examId") examId: string) {
+        Object.assign(body, req.payload);
+        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/session/create/${examId}`, body);
+        return (await result).data;
+    }
+
+    @Post("submit-answers/:sessionId")
+    @UseGuards(JwtAuthGuard)
+    async submitAnswers(@Body() body: any, @Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload);
+        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/session/submit-answers/${sessionId}`, body);
+        return (await result).data;
+    }
+
+    @Post("finish-session/:sessionId")
+    @UseGuards(JwtAuthGuard)
+    async finishSession(@Body() body: any, @Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload);
+        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/session/finish/${sessionId}`, body);
         return (await result).data;
     }
 }
