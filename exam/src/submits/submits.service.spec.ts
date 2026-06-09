@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ObjectLiteral, Repository } from 'typeorm';
 import {
   NotFoundException,
   BadRequestException,
@@ -13,7 +13,7 @@ import { UserAnswer } from '../entities/user-answers.entity';
 import { Part } from '../entities/parts.entity';
 import { Question } from '../entities/questions.entity';
 
-type MockRepo<T> = jest.Mocked<Pick<Repository<T>, keyof Repository<T>>>;
+type MockRepo<T extends ObjectLiteral> = jest.Mocked<Pick<Repository<T>, keyof Repository<T>>>;
 
 describe('SubmitsService', () => {
   let service: SubmitsService;
@@ -180,8 +180,8 @@ describe('SubmitsService', () => {
   describe('finishSession', () => {
     const sessionId = 'session-uuid-finish';
     const now = Date.now();
-    let baseSubmit: Partial<Submit>;
-    let baseUserAnswers: Partial<UserAnswer>[];
+    let baseSubmit: any;
+    let baseUserAnswers: any[];
     let questions: Partial<Question>[];
 
     beforeEach(() => {
@@ -230,7 +230,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockResolvedValue(baseSubmit as Submit);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       const result = await service.finishSession({ sessionId, ...payload });
 
@@ -251,7 +251,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockResolvedValue(baseSubmit as Submit);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       const result = await service.finishSession({ sessionId, ...payload });
 
@@ -282,7 +282,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockResolvedValue(baseSubmit as Submit);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       const result = await service.finishSession({ sessionId, ...payload });
 
@@ -297,7 +297,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockResolvedValue(baseSubmit as Submit);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       const result = await service.finishSession({ sessionId, ...payload });
 
@@ -311,7 +311,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockResolvedValue(baseSubmit as Submit);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       const result = await service.finishSession({ sessionId, ...payload });
 
@@ -358,7 +358,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockResolvedValue(baseSubmit as Submit);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       await service.finishSession({ sessionId, ...payload });
 
@@ -372,7 +372,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockImplementation(async (s: any) => s);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       const result = await service.finishSession({ sessionId, ...payload });
 
@@ -386,7 +386,7 @@ describe('SubmitsService', () => {
       mockFindOne(baseSubmit);
 
       submitRepo.save.mockResolvedValue(baseSubmit as Submit);
-      userAnswerRepo.save.mockResolvedValue([]);
+      userAnswerRepo.save.mockResolvedValue([] as any);
 
       const result = await service.finishSession({ sessionId, ...payload });
 

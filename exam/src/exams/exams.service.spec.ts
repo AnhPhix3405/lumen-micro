@@ -29,7 +29,7 @@ describe('ExamService', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-
+  // this test is not essential , cause gateway already validate the userId from JWT payload, but help expose significant logic in the exam module.
   it('creates an exam with all fields, using userId from JWT payload', async () => {
     const dto: CreateExamDto = {
       name: 'Math Exam',
