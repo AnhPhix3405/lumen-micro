@@ -29,7 +29,7 @@ export class AuthService {
             email: email,
             password_hash: hashedPassword,
         });
-        const code = Math.floor(1000 + Math.random() * 9000).toString();
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
         await redisClient.set(`verify_email:${email}`, code);
         await redisClient.expire(`verify_email:${email}`, 300);
         this.emailService.sendVerificationCode(email, code);
@@ -38,6 +38,14 @@ export class AuthService {
             email: account.email,
         });
         return account;
+    }
+
+    async sendVerifyCode(email: string) {
+        const account = await this.accountsService.getAccountByEmail(email);
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        await redisClient.set(`verify_email:${email}`, code);
+        await redisClient.expire(`verify_email:${email}`, 300);
+        await this.emailService.sendVerificationCode(email, code);
     }
 
     async hashPassword(password: string) {
@@ -66,6 +74,9 @@ export class AuthService {
         const isPasswordValid = await bcrypt.compare(password, existAccount.password_hash);
         if (!isPasswordValid) {
             throw new BadRequestException("Invalid password");
+        }
+        if (existAccount.is_verified === false) {
+            throw new BadRequestException("Account not verified");
         }
         const response = await axios.post(`${this.configService.get<string>('USER_SERVICE_URL')}/get-user-by-account-id`, {
             accountId: existAccount.id,

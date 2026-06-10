@@ -1,7 +1,7 @@
 import { BadRequestException, Body, Controller, HttpStatus, Post, Req, Res } from "@nestjs/common";
 import { IRegisterDto } from "./dto/register.dto";
 import { AuthService } from "./auth.service";
-import type { IVerifyEmailDto } from "./dto/verify_email.dto";
+import { IVerifyEmailDto } from "./dto/verify_email.dto";
 import { ILoginDto } from "./dto/login.dto";
 import type { Request, Response } from "express";
 import { IChangePasswordDto, IResetPasswordDto, IVerifyCodeDto } from "./dto/password_module.dto";
@@ -17,6 +17,14 @@ export class AuthController {
             message: "Account created successfully",
             status: HttpStatus.CREATED
         }
+    }
+
+    @Post("send-verify-code")
+    async sendVerifyCode(@Body() body: any, @Res() res: Response) {
+        await this.authService.sendVerifyCode(body.email);
+        return res.status(HttpStatus.OK).json({
+            message: "Verification code sent successfully",
+        });
     }
 
     @Post("verify-email")
