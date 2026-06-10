@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { SubmitsService } from './submits.service';
 import { CreateSubmitDto, FinishSessionDto, SubmitAnswersDto } from 'src/dto/submit_module.dto';
 import { BodyTokenPayload } from 'src/interfaces/payload';
@@ -21,6 +21,7 @@ export class SubmitsController {
     }
 
     @Post('/finish/:sessionId')
+    @HttpCode(HttpStatus.OK)
     async finishSession(
         @Param('sessionId') sessionId: string,
         @Body() body: FinishSessionDto & BodyTokenPayload,

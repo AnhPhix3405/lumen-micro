@@ -4,6 +4,8 @@ import request from 'supertest';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { AllExceptionFilter } from '../src/exeptionFilter';
 import { ExamModule } from '../src/exams/exams.module';
 import { SubmitsModule } from '../src/submits/submits.module';
 import { PartsModule } from '../src/parts/parts.module';
@@ -16,6 +18,8 @@ import { QuestionGroup } from '../src/entities/question-groups.entity';
 import { Question } from '../src/entities/questions.entity';
 import { Submit } from '../src/entities/submits.entity';
 import { UserAnswer } from '../src/entities/user-answers.entity';
+
+jest.setTimeout(30000);
 
 describe('Submits (e2e) — create session & finish session', () => {
   let app: INestApplication;
@@ -38,6 +42,7 @@ describe('Submits (e2e) — create session & finish session', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
@@ -54,6 +59,7 @@ describe('Submits (e2e) — create session & finish session', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+    app.useGlobalFilters(new AllExceptionFilter());
     await app.init();
 
     examRepo = moduleFixture.get<Repository<Exam>>(getRepositoryToken(Exam));

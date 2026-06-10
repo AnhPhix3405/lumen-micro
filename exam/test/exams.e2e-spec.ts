@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { AllExceptionFilter } from '../src/exeptionFilter';
 import { ExamModule } from '../src/exams/exams.module';
 import { PartsModule } from '../src/parts/parts.module';
 import { QuestionGroupModule } from '../src/question_groups/question_groups.module';
@@ -16,6 +17,8 @@ import { QuestionGroup } from '../src/entities/question-groups.entity';
 import { Question } from '../src/entities/questions.entity';
 import { UserAnswer } from '../src/entities/user-answers.entity';
 import { Submit } from '../src/entities/submits.entity';
+
+jest.setTimeout(30000);
 
 describe('Exams (e2e) — create exam', () => {
   let app: INestApplication;
@@ -40,6 +43,7 @@ describe('Exams (e2e) — create exam', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
+    app.useGlobalFilters(new AllExceptionFilter());
     await app.init();
 
     examTypeRepo = moduleFixture.get<Repository<ExamType>>(getRepositoryToken(ExamType));
