@@ -54,13 +54,13 @@ export class Exam {
   @Column({ name: 'is_published', type: 'boolean', default: false })
   isPublished: boolean;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp' })
+  @DeleteDateColumn({ name: 'deleted_at', type: 'datetime' })
   deletedAt: Date;
 
   @OneToMany(() => Part, (part) => part.exam)

@@ -42,10 +42,10 @@ export class Part {
   @Column({ type: 'int', default: 0 })
   score: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
 
   @OneToMany(() => QuestionGroup, (questionGroup) => questionGroup.part)

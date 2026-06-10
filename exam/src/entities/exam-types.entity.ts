@@ -24,10 +24,10 @@ export class ExamType {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
 
   @OneToMany(() => Exam, (exam) => exam.examType)

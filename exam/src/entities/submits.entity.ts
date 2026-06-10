@@ -33,10 +33,10 @@ export class Submit {
   @Column({ name: 'time_limit_seconds', type: 'int', nullable: true })
   timeLimitSeconds: number | null;
 
-  @Column({ name: 'started_at', type: 'timestamp', default: () => 'NOW()' })
+  @Column({ name: 'started_at', type: 'datetime', default: () => 'NOW()' })
   startedAt: Date;
 
-  @Column({ name: 'submitted_at', type: 'timestamp', nullable: true })
+  @Column({ name: 'submitted_at', type: 'datetime', nullable: true })
   submittedAt: Date;
 
   @Column({ name: 'duration_seconds', type: 'int', nullable: true })
@@ -54,13 +54,13 @@ export class Submit {
   @Column({ name: 'total_score', type: 'numeric', precision: 10, scale: 2, default: 0 })
   totalScore: number;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'json', nullable: true })
   metadata: object;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
 
   @OneToMany(() => UserAnswer, (userAnswer) => userAnswer.submit)

@@ -46,10 +46,10 @@ export class Question {
   imageUrl: string;
 
   @Index('idx_questions_options_gin', { synchronize: false })
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'json', nullable: true })
   options: object;
 
-  @Column({ name: 'correct_option', type: 'jsonb', nullable: true })
+  @Column({ name: 'correct_option', type: 'json', nullable: true })
   correctOption: object;
 
   @Column({ type: 'int', default: 1 })
@@ -58,10 +58,10 @@ export class Question {
   @Column({ name: 'question_order', type: 'int' })
   questionOrder: number;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'datetime' })
   updatedAt: Date;
 
   @OneToMany(() => UserAnswer, (userAnswer) => userAnswer.question)

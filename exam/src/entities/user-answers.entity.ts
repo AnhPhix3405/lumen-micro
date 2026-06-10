@@ -34,7 +34,7 @@ export class UserAnswer {
   @Column({ name: 'answer_type', type: 'varchar', length: 30 })
   answerType: string;
 
-  @Column({ name: 'selected_option', type: 'jsonb', nullable: true })
+  @Column({ name: 'selected_option', type: 'json', nullable: true })
   selectedOption: object | null;
 
   @Column({ name: 'answer_content', type: 'text', nullable: true })
@@ -49,9 +49,9 @@ export class UserAnswer {
   @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
   score: number;
 
-  @Column({ name: 'answered_at', type: 'timestamp', default: () => 'NOW()' })
+  @Column({ name: 'answered_at', type: 'datetime', default: () => 'NOW()' })
   answeredAt: Date;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  @CreateDateColumn({ name: 'created_at', type: 'datetime' })
   createdAt: Date;
 }

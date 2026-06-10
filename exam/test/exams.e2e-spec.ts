@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -13,6 +14,8 @@ import { ExamType } from '../src/entities/exam-types.entity';
 import { Part } from '../src/entities/parts.entity';
 import { QuestionGroup } from '../src/entities/question-groups.entity';
 import { Question } from '../src/entities/questions.entity';
+import { UserAnswer } from '../src/entities/user-answers.entity';
+import { Submit } from '../src/entities/submits.entity';
 
 describe('Exams (e2e) — create exam', () => {
   let app: INestApplication;
@@ -21,10 +24,11 @@ describe('Exams (e2e) — create exam', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot({
           type: 'sqlite',
           database: ':memory:',
-          entities: [Exam, ExamType, Part, QuestionGroup, Question],
+          entities: [Exam, ExamType, Part, QuestionGroup, Question, UserAnswer, Submit],
           synchronize: true,
         }),
         ExamModule,
