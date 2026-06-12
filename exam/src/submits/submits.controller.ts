@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Param, Post } from '@nestjs/common';
 import { SubmitsService } from './submits.service';
 import { CreateSubmitDto, FinishSessionDto, SubmitAnswersDto } from 'src/dto/submit_module.dto';
 import { BodyTokenPayload } from 'src/interfaces/payload';
@@ -9,7 +9,8 @@ export class SubmitsController {
 
     @Post('create/:examId')
     async createSession(@Body() body: CreateSubmitDto & BodyTokenPayload, @Param("examId") examId: string) {
-        return this.submitsService.createSession({ ...body, examId });
+        const data = await this.submitsService.createSession({ ...body, examId });
+        return { data, message: "Session created successfully", status: HttpStatus.CREATED };
     }
 
     @Post('submit-answers/:sessionId')
@@ -17,15 +18,16 @@ export class SubmitsController {
         @Param('sessionId') sessionId: string,
         @Body() body: SubmitAnswersDto & BodyTokenPayload,
     ) {
-        return this.submitsService.submitAnswers({ ...body, sessionId });
+        const data = await this.submitsService.submitAnswers({ ...body, sessionId });
+        return { data, message: "Answers submitted successfully", status: HttpStatus.OK };
     }
 
     @Post('/finish/:sessionId')
-    @HttpCode(HttpStatus.OK)
     async finishSession(
         @Param('sessionId') sessionId: string,
         @Body() body: FinishSessionDto & BodyTokenPayload,
     ) {
-        return this.submitsService.finishSession({ ...body, sessionId });
+        const data = await this.submitsService.finishSession({ ...body, sessionId });
+        return { data, message: "Session finished successfully", status: HttpStatus.OK };
     }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch, Post, Req } from "@nestjs/common";
+import { Body, Controller, HttpStatus, Param, Patch, Post, Req } from "@nestjs/common";
 import { CreateQuestionGroupDto } from "src/dto/question_group_module";
 import { QuestionGroupsService } from "./question_groups.service";
 import type { BodyTokenPayload } from "src/interfaces/payload";
@@ -9,10 +9,8 @@ export class QuestionGroupsController {
     @Post("/:partId")
     async createQuestionGroup(@Body() body: CreateQuestionGroupDto & BodyTokenPayload, @Param("partId") partId: string) {
         const combined = Object.assign(body, { partId });
-        await this.questionGroupsService.create(combined);
-        return {
-            message: "Question group created successfully"
-        }
+        const data = await this.questionGroupsService.create(combined);
+        return { data, message: "Question group created successfully", status: HttpStatus.CREATED };
     }
 
     @Patch("/:questionGroupId/upload-audio")
@@ -21,9 +19,7 @@ export class QuestionGroupsController {
         @Param("questionGroupId") questionGroupId: string
     ) {
         const userId = req.headers["x-user-id"] as string;
-        await this.questionGroupsService.uploadQuestionGroupAudio(req, userId, questionGroupId);
-        return {
-            message: "Question group audio uploaded successfully"
-        };
+        const data = await this.questionGroupsService.uploadQuestionGroupAudio(req, userId, questionGroupId);
+        return { data, message: "Question group audio uploaded successfully", status: HttpStatus.OK };
     }
 }
