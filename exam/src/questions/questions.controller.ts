@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post } from "@nestjs/common";
 import { QuestionsService } from "./questions.service";
 import { CreateQuestionDto, CreateQuestionInGroupDto, UpdateQuestionDto } from "src/dto/question_module.dto";
 import type { BodyTokenPayload } from "src/interfaces/payload";
@@ -23,5 +23,23 @@ export class QuestionsController {
     async updateQuestion(@Body() body: UpdateQuestionDto & BodyTokenPayload) {
         const data = await this.questionsService.update(body);
         return { data, message: "Question updated successfully", status: HttpStatus.OK };
+    }
+
+    @Get(":id")
+    async findOne(@Param("id") id: string) {
+        const data = await this.questionsService.findOneById(id);
+        return { data, message: "Question fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get("by-group/:questionGroupId")
+    async findByGroup(@Param("questionGroupId") questionGroupId: string) {
+        const data = await this.questionsService.findByGroupId(questionGroupId);
+        return { data, message: "Questions fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get("by-part/:partId")
+    async findByPart(@Param("partId") partId: string) {
+        const data = await this.questionsService.findByPartId(partId);
+        return { data, message: "Questions fetched successfully", status: HttpStatus.OK };
     }
 }

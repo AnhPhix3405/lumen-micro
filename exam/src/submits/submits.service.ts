@@ -6,7 +6,7 @@ import { Exam } from 'src/entities/exams.entity';
 import { UserAnswer } from 'src/entities/user-answers.entity';
 import { Part } from 'src/entities/parts.entity';
 import { Question } from 'src/entities/questions.entity';
-import { BodyTokenPayload } from 'src/interfaces/payload';
+import { BodyTokenPayload, TokenPayload } from 'src/interfaces/payload';
 import { AnswerItemDto } from 'src/dto/submit_module.dto';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class SubmitsService {
         @InjectRepository(UserAnswer) private readonly userAnswerRepository: Repository<UserAnswer>,
         @InjectRepository(Part) private readonly partRepository: Repository<Part>,
         @InjectRepository(Question) private readonly questionRepository: Repository<Question>,
-    ) {}
+    ) { }
 
     async createSession(params: { examId: string; timeLimit?: number } & BodyTokenPayload) {
         const exam = await this.examRepository.findOne({ where: { id: params.examId } });
@@ -208,5 +208,27 @@ export class SubmitsService {
             correctRatio: submit.correctRatio,
             durationSeconds: submit.durationSeconds,
         };
+    }
+
+    async findSessionById(sessionId: string, payload: TokenPayload) {
+        const submit = await this.submitRepository.findOne({
+            where: { id: sessionId, userId: payload.userId },
+            relations: {
+                exam: { examType: true },
+                userAnswers: { question: true },
+            },
+        });
+        if (!submit) {
+            throw new NotFoundException('Session not found');
+        }
+        return submit;
+    }
+
+    async findUserSessions(payload: TokenPayload) {
+        return await this.submitRepository.find({
+            where: { userId: payload.userId },
+            relations: { exam: true },
+            order: { createdAt: "DESC" },
+        });
     }
 }

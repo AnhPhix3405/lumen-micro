@@ -1,11 +1,17 @@
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { CreateExamDto, UpdateExamDto } from "src/dto/exam_module.dto";
 import { Exam } from "src/entities/exams.entity";
+import { ExamType } from "src/entities/exam-types.entity";
 import { BodyTokenPayload, TokenPayload } from "src/interfaces/payload";
-import { Repository } from "typeorm";
 
+@Injectable()
 export class ExamService {
-    constructor(@InjectRepository(Exam) private readonly examRepository: Repository<Exam>) { }
+    constructor(
+        @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
+        @InjectRepository(ExamType) private readonly examTypeRepository: Repository<ExamType>,
+    ) { }
     async create(params: CreateExamDto & BodyTokenPayload) {
         const exam = this.examRepository.create({
             userId: params.payload.userId,
@@ -51,20 +57,52 @@ export class ExamService {
         return await this.examRepository.delete(params.examId);
     }
 
-    async findOnePublished(params: { examId: string }) {
-        const exam = await this.examRepository.findOne({ where: { id: params.examId, isPublished: true } });
+    async findAllPublished() {
+        return await this.examRepository.find({
+            where: { isPublished: true },
+            relations: { examType: true },
+            order: { createdAt: "DESC" },
+        });
+    }
+
+    async findOneWithFullTree(examId: string) {
+        const exam = await this.examRepository.findOne({
+            where: { id: examId },
+            relations: {
+                examType: true,
+                parts: {
+                    questionGroups: {
+                        questions: true,
+                    },
+                },
+            },
+            order: {
+                parts: { partOrder: "ASC" },
+            },
+        });
         if (!exam) {
-            throw new Error("Exam not found");
+            throw new NotFoundException("Exam not found");
         }
         return exam;
     }
 
-    async findAllPublished(params: TokenPayload) {
-        const exams = await this.examRepository.find({ where: { isPublished: true } });
-        if (!exams) {
-            throw new Error("Exam not found");
-        }
-        return exams;
+    async findMyExams(payload: TokenPayload) {
+        return await this.examRepository.find({
+            where: { userId: payload.userId },
+            relations: { examType: true },
+            order: { createdAt: "DESC" },
+        });
     }
 
+    async findAllExamTypes() {
+        return await this.examTypeRepository.find({ order: { name: "ASC" } });
+    }
+
+    async findExamTypeById(id: string) {
+        const examType = await this.examTypeRepository.findOne({ where: { id } });
+        if (!examType) {
+            throw new NotFoundException("Exam type not found");
+        }
+        return examType;
+    }
 }

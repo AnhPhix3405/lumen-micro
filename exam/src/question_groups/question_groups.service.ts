@@ -1,4 +1,4 @@
-import { Injectable, } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { QuestionGroup } from "src/entities/question-groups.entity";
 import { Repository } from "typeorm";
@@ -43,10 +43,26 @@ export class QuestionGroupsService {
         userId: string,
         questionGroupId: string
     ): Promise<string> {
-        // const reproduced_url = await this.uploadService.uploadQuestionGroupAudio(req, userId);
-        // const updateResult = await this.questionGroupRepository.update({ id: questionGroupId }, { audioUrl: reproduced_url });
-        // console.log(updateResult)
-        // return reproduced_url;
         return "";
+    }
+
+    async findByPartId(partId: string) {
+        return await this.questionGroupRepository.find({
+            where: { partId },
+            relations: { questions: true },
+            order: { groupOrder: "ASC", questions: { questionOrder: "ASC" } },
+        });
+    }
+
+    async findOneWithQuestions(id: string) {
+        const questionGroup = await this.questionGroupRepository.findOne({
+            where: { id },
+            relations: { questions: true },
+            order: { questions: { questionOrder: "ASC" } },
+        });
+        if (!questionGroup) {
+            throw new NotFoundException("Question group not found");
+        }
+        return questionGroup;
     }
 }

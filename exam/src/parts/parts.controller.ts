@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post } from "@nestjs/common";
 import { PartsService } from "./parts.service";
 import { CreatePartDto, UpdatePartDto } from "src/dto/part_module.dto";
 import type { BodyTokenPayload } from "src/interfaces/payload";
@@ -18,5 +18,17 @@ export class PartsController {
         const combined = Object.assign(body, { partId });
         const data = await this.partsService.update(combined);
         return { data, message: "Part updated successfully", status: HttpStatus.OK };
+    }
+
+    @Get("parts/exam/:examId")
+    async findPartsByExam(@Param("examId") examId: string) {
+        const data = await this.partsService.findByExamId(examId);
+        return { data, message: "Parts fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get("parts/:partId")
+    async findPartWithQuestionGroups(@Param("partId") partId: string) {
+        const data = await this.partsService.findOneWithQuestionGroups(partId);
+        return { data, message: "Part fetched successfully", status: HttpStatus.OK };
     }
 }

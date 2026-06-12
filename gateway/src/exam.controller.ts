@@ -1,41 +1,182 @@
-import { Body, Controller, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "./guards/jwt_auth.guard";
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { TokenPayload } from "./interfaces/payload";
 import FormData from "form-data";
+import {
+    CreateExamDto,
+    UpdateExamDto,
+    CreatePartDto,
+    CreateQuestionGroupDto,
+    CreateQuestionInGroupDto,
+    CreateSeparateQuestionDto,
+    UpdateQuestionDto,
+    CreateSubmitDto,
+    SubmitAnswersDto,
+    FinishSessionDto,
+    ExamResponse,
+    ExamTypeResponse,
+    PartResponse,
+    QuestionGroupResponse,
+    QuestionResponse,
+    SessionResponse,
+    SubmitAnswersResponse,
+    FinishSessionResponse,
+    ApiResponse as ApiSuccessResponse,
+} from "./dto/exam.dto";
+
+@ApiBearerAuth("JWT")
+@ApiTags("Exam")
 @Controller("exam")
 export class ExamController {
     constructor(private readonly config: ConfigService) { }
+
+    private get examUrl() {
+        return this.config.get("EXAM_SERVICE_URL");
+    }
+
     @Post()
     @UseGuards(JwtAuthGuard)
-    //@desc create exam
-    async createExam(@Body() body: any, @Req() req: Request & { payload: TokenPayload }) {
+    @ApiOperation({ summary: "Create a new exam" })
+    @ApiBody({ type: CreateExamDto })
+    @ApiResponse({ status: 201, description: "Exam created" })
+    async createExam(@Body() body: CreateExamDto, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}`, body);
+        const result = axios.post(`${this.examUrl}`, body);
+        return (await result).data;
+    }
+
+    @Get()
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "List all published exams" })
+    @ApiResponse({ status: 200, description: "List of published exams", type: ApiResponse })
+    async findAllPublished() {
+        const result = axios.get(`${this.examUrl}`);
+        return (await result).data;
+    }
+
+    @Get(":examId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get full exam tree with parts, groups, and questions" })
+    @ApiParam({ name: "examId", description: "Exam UUID" })
+    @ApiResponse({ status: 200, description: "Full exam tree" })
+    async findOneWithFullTree(@Param("examId") examId: string) {
+        const result = axios.get(`${this.examUrl}/${examId}`);
+        return (await result).data;
+    }
+
+    @Get("my")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get current user's own exams" })
+    @ApiResponse({ status: 200, description: "User's exams" })
+    async findMyExams(@Req() req: Request & { payload: TokenPayload }) {
+        const result = axios.get(`${this.examUrl}/my/all`, {
+            data: req.payload,
+        });
+        return (await result).data;
+    }
+
+    @Get("exam-types")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "List all exam types" })
+    @ApiResponse({ status: 200, description: "List of exam types" })
+    async findAllExamTypes() {
+        const result = axios.get(`${this.examUrl}/exam-types`);
+        return (await result).data;
+    }
+
+    @Get("exam-types/:id")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get exam type by ID" })
+    @ApiParam({ name: "id", description: "Exam type UUID" })
+    @ApiResponse({ status: 200, description: "Exam type details" })
+    async findExamTypeById(@Param("id") id: string) {
+        const result = axios.get(`${this.examUrl}/exam-types/${id}`);
         return (await result).data;
     }
 
     @Post(":examId/part")
     @UseGuards(JwtAuthGuard)
-    async createPart(@Body() body: any, @Param("examId") examId: string, @Req() req: Request & { payload: TokenPayload }) {
+    @ApiOperation({ summary: "Create a part within an exam" })
+    @ApiParam({ name: "examId", description: "Exam UUID" })
+    @ApiBody({ type: CreatePartDto })
+    @ApiResponse({ status: 201, description: "Part created" })
+    async createPart(@Body() body: CreatePartDto, @Param("examId") examId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/${examId}`, body);
+        const result = axios.post(`${this.examUrl}/${examId}`, body);
+        return (await result).data;
+    }
+
+    @Get("parts/exam/:examId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get all parts for an exam" })
+    @ApiParam({ name: "examId", description: "Exam UUID" })
+    @ApiResponse({ status: 200, description: "List of parts" })
+    async findPartsByExam(@Param("examId") examId: string) {
+        const result = axios.get(`${this.examUrl}/parts/exam/${examId}`);
+        return (await result).data;
+    }
+
+    @Get("part/:partId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get part with question groups and questions" })
+    @ApiParam({ name: "partId", description: "Part UUID" })
+    @ApiResponse({ status: 200, description: "Part details" })
+    async findPartWithQuestionGroups(@Param("partId") partId: string) {
+        const result = axios.get(`${this.examUrl}/parts/${partId}`);
         return (await result).data;
     }
 
     @Post("part/:partId/question-group")
     @UseGuards(JwtAuthGuard)
-    async createQuestionGroup(@Body() body: any, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
+    @ApiOperation({ summary: "Create a question group within a part" })
+    @ApiParam({ name: "partId", description: "Part UUID" })
+    @ApiBody({ type: CreateQuestionGroupDto })
+    @ApiResponse({ status: 201, description: "Question group created" })
+    async createQuestionGroup(@Body() body: CreateQuestionGroupDto, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question-group/${partId}`, body);
+        const result = axios.post(`${this.examUrl}/question-group/${partId}`, body);
+        return (await result).data;
+    }
+
+    @Get("question-group/part/:partId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get all question groups for a part" })
+    @ApiParam({ name: "partId", description: "Part UUID" })
+    @ApiResponse({ status: 200, description: "List of question groups" })
+    async findGroupsByPart(@Param("partId") partId: string) {
+        const result = axios.get(`${this.examUrl}/question-group/part/${partId}`);
+        return (await result).data;
+    }
+
+    @Get("question-group/:id")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get a question group with its questions" })
+    @ApiParam({ name: "id", description: "Question group UUID" })
+    @ApiResponse({ status: 200, description: "Question group details" })
+    async findGroupWithQuestions(@Param("id") id: string) {
+        const result = axios.get(`${this.examUrl}/question-group/${id}`);
         return (await result).data;
     }
 
     @Patch("question-group/:questionGroupId/upload-audio")
     @UseGuards(JwtAuthGuard)
     @UseInterceptors(FileInterceptor("file"))
+    @ApiOperation({ summary: "Upload audio file for a question group" })
+    @ApiParam({ name: "questionGroupId", description: "Question group UUID" })
+    @ApiConsumes("multipart/form-data")
+    @ApiBody({
+        schema: {
+            type: "object",
+            properties: {
+                file: { type: "string", format: "binary" },
+            },
+        },
+    })
+    @ApiResponse({ status: 200, description: "Audio uploaded" })
     async uploadQuestionGroupAudio(
         @UploadedFile() file: Express.Multer.File,
         @Param("questionGroupId") questionGroupId: string,
@@ -44,7 +185,7 @@ export class ExamController {
         const formData = new FormData();
         formData.append("file", file.buffer, { filename: file.originalname, contentType: file.mimetype });
         const result = axios.patch(
-            `${this.config.get("EXAM_SERVICE_URL")}/question-group/${questionGroupId}/upload-audio`,
+            `${this.examUrl}/question-group/${questionGroupId}/upload-audio`,
             formData,
             {
                 headers: {
@@ -58,43 +199,115 @@ export class ExamController {
 
     @Post("question-group/:questionGroupId/question")
     @UseGuards(JwtAuthGuard)
-    async createQuestionInGroup(@Body() body: any, @Param("questionGroupId") questionGroupId: string, @Req() req: Request & { payload: TokenPayload }) {
+    @ApiOperation({ summary: "Create a question inside a question group" })
+    @ApiParam({ name: "questionGroupId", description: "Question group UUID" })
+    @ApiBody({ type: CreateQuestionInGroupDto })
+    @ApiResponse({ status: 201, description: "Question created" })
+    async createQuestionInGroup(@Body() body: CreateQuestionInGroupDto, @Param("questionGroupId") questionGroupId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
         Object.assign(body, { questionGroupId });
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question/question-group/${questionGroupId}`, body);
+        const result = axios.post(`${this.examUrl}/question/question-group/${questionGroupId}`, body);
+        return (await result).data;
+    }
+
+    @Get("question/:id")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get a single question by ID" })
+    @ApiParam({ name: "id", description: "Question UUID" })
+    @ApiResponse({ status: 200, description: "Question details" })
+    async findQuestion(@Param("id") id: string) {
+        const result = axios.get(`${this.examUrl}/question/${id}`);
+        return (await result).data;
+    }
+
+    @Get("question/by-group/:questionGroupId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get all questions in a question group" })
+    @ApiParam({ name: "questionGroupId", description: "Question group UUID" })
+    @ApiResponse({ status: 200, description: "List of questions" })
+    async findQuestionsByGroup(@Param("questionGroupId") questionGroupId: string) {
+        const result = axios.get(`${this.examUrl}/question/by-group/${questionGroupId}`);
+        return (await result).data;
+    }
+
+    @Get("question/by-part/:partId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get standalone questions in a part" })
+    @ApiParam({ name: "partId", description: "Part UUID" })
+    @ApiResponse({ status: 200, description: "List of questions" })
+    async findQuestionsByPart(@Param("partId") partId: string) {
+        const result = axios.get(`${this.examUrl}/question/by-part/${partId}`);
         return (await result).data;
     }
 
     @Post("part/:partId/question")
     @UseGuards(JwtAuthGuard)
-    async createQuestion(@Body() body: any, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
+    @ApiOperation({ summary: "Create a standalone question in a part" })
+    @ApiParam({ name: "partId", description: "Part UUID" })
+    @ApiBody({ type: CreateSeparateQuestionDto })
+    @ApiResponse({ status: 201, description: "Question created" })
+    async createQuestion(@Body() body: CreateSeparateQuestionDto, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/question/part/${partId}`, body);
+        const result = axios.post(`${this.examUrl}/question/part/${partId}`, body);
         return (await result).data;
     }
 
-
     @Post("create-session/:examId")
     @UseGuards(JwtAuthGuard)
-    async createSubmit(@Body() body: any, @Req() req: Request & { payload: TokenPayload }, @Param("examId") examId: string) {
+    @ApiOperation({ summary: "Start a new exam session" })
+    @ApiParam({ name: "examId", description: "Exam UUID" })
+    @ApiBody({ type: CreateSubmitDto })
+    @ApiResponse({ status: 201, description: "Session created" })
+    async createSubmit(@Body() body: CreateSubmitDto, @Req() req: Request & { payload: TokenPayload }, @Param("examId") examId: string) {
         Object.assign(body, req.payload);
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/session/create/${examId}`, body);
+        const result = axios.post(`${this.examUrl}/session/create/${examId}`, body);
         return (await result).data;
     }
 
     @Post("submit-answers/:sessionId")
     @UseGuards(JwtAuthGuard)
-    async submitAnswers(@Body() body: any, @Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
+    @ApiOperation({ summary: "Submit answers for an in-progress session" })
+    @ApiParam({ name: "sessionId", description: "Session UUID" })
+    @ApiBody({ type: SubmitAnswersDto })
+    @ApiResponse({ status: 200, description: "Answers saved" })
+    async submitAnswers(@Body() body: SubmitAnswersDto, @Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/session/submit-answers/${sessionId}`, body);
+        const result = axios.post(`${this.examUrl}/session/submit-answers/${sessionId}`, body);
         return (await result).data;
     }
 
     @Post("finish-session/:sessionId")
     @UseGuards(JwtAuthGuard)
-    async finishSession(@Body() body: any, @Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
+    @ApiOperation({ summary: "Finish a session and calculate score" })
+    @ApiParam({ name: "sessionId", description: "Session UUID" })
+    @ApiBody({ type: FinishSessionDto })
+    @ApiResponse({ status: 200, description: "Session finished with score" })
+    async finishSession(@Body() body: FinishSessionDto, @Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
-        const result = axios.post(`${this.config.get("EXAM_SERVICE_URL")}/session/finish/${sessionId}`, body);
+        const result = axios.post(`${this.examUrl}/session/finish/${sessionId}`, body);
+        return (await result).data;
+    }
+
+    @Get("session/:sessionId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get session details with answers" })
+    @ApiParam({ name: "sessionId", description: "Session UUID" })
+    @ApiResponse({ status: 200, description: "Session details" })
+    async findSession(@Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
+        const result = axios.get(`${this.examUrl}/session/${sessionId}`, {
+            data: req.payload,
+        });
+        return (await result).data;
+    }
+
+    @Get("sessions/my")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get current user's all sessions" })
+    @ApiResponse({ status: 200, description: "User's sessions" })
+    async findUserSessions(@Req() req: Request & { payload: TokenPayload }) {
+        const result = axios.get(`${this.examUrl}/session/user/all`, {
+            data: req.payload,
+        });
         return (await result).data;
     }
 }

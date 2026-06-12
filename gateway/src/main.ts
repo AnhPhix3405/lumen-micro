@@ -16,6 +16,7 @@ async function bootstrap() {
     .setTitle('Lumen Micro API')
     .setDescription('API Gateway for Lumen Micro services')
     .setVersion('1.0')
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);

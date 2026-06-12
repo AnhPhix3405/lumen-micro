@@ -1,7 +1,8 @@
-import { Body, Controller, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Req } from '@nestjs/common';
 import { SubmitsService } from './submits.service';
 import { CreateSubmitDto, FinishSessionDto, SubmitAnswersDto } from 'src/dto/submit_module.dto';
-import { BodyTokenPayload } from 'src/interfaces/payload';
+import { BodyTokenPayload, TokenPayload } from 'src/interfaces/payload';
+import type { Request } from 'express';
 
 @Controller("session")
 export class SubmitsController {
@@ -29,5 +30,20 @@ export class SubmitsController {
     ) {
         const data = await this.submitsService.finishSession({ ...body, sessionId });
         return { data, message: "Session finished successfully", status: HttpStatus.OK };
+    }
+
+    @Get(':sessionId')
+    async findSession(
+        @Param('sessionId') sessionId: string,
+        @Req() req: Request & { payload: TokenPayload },
+    ) {
+        const data = await this.submitsService.findSessionById(sessionId, req.payload);
+        return { data, message: "Session fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get('user/all')
+    async findUserSessions(@Req() req: Request & { payload: TokenPayload }) {
+        const data = await this.submitsService.findUserSessions(req.payload);
+        return { data, message: "Sessions fetched successfully", status: HttpStatus.OK };
     }
 }

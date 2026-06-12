@@ -13,7 +13,7 @@ All endpoints return JSON with the following error shape on failure:
 }
 ```
 
-All endpoints except `upload-audio` require a valid JWT access token in the `Authorization` header:
+All endpoints require a valid JWT access token in the `Authorization` header:
 
 ```
 Authorization: Bearer <accessToken>
@@ -66,6 +66,161 @@ Creates a new exam.
 
 ---
 
+## List All Published Exams
+
+Returns all published exams (summary, without deep relations).
+
+**Endpoint:** `GET /exam`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "IELTS Listening Test 1",
+      "description": "Full IELTS listening practice test",
+      "durationMinutes": 30,
+      "totalScore": 40,
+      "visibility": "public",
+      "isPublished": true,
+      "examType": { "id": "uuid", "name": "IELTS", "code": "ielts" }
+    }
+  ],
+  "message": "Exams fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get Full Exam Tree
+
+Returns an exam with its full nested structure: exam type, parts (sorted), each part's question groups (sorted), and each group's questions (sorted).
+
+**Endpoint:** `GET /exam/:examId`
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "IELTS Listening Test 1",
+    "description": "Full IELTS listening practice test",
+    "durationMinutes": 30,
+    "totalScore": 40,
+    "visibility": "public",
+    "isPublished": true,
+    "examType": { "id": "uuid", "name": "IELTS", "code": "ielts" },
+    "parts": [
+      {
+        "id": "uuid",
+        "name": "Section 1",
+        "type": "listening",
+        "partOrder": 1,
+        "instruction": "Listen to the conversation and answer questions 1-5",
+        "score": 10,
+        "questionGroups": [
+          {
+            "id": "uuid",
+            "content": "Listen to the following conversation...",
+            "type": "single",
+            "groupOrder": 1,
+            "audioUrl": "https://cdn.example.com/audio/uuid.mp3",
+            "transcript": "Full transcript text...",
+            "questions": [
+              {
+                "id": "uuid",
+                "type": "group",
+                "content": "What is the speaker's main concern?",
+                "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+                "score": 1,
+                "questionOrder": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "message": "Exam fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get My Exams
+
+Returns the current authenticated user's own exams.
+
+**Endpoint:** `GET /exam/my`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "My Custom Exam",
+      "isPublished": false,
+      "examType": { "id": "uuid", "name": "TOEIC", "code": "toeic" }
+    }
+  ],
+  "message": "My exams fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## List All Exam Types
+
+Returns all available exam types (e.g., IELTS, TOEIC, TOEFL).
+
+**Endpoint:** `GET /exam/exam-types`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    { "id": "uuid", "name": "IELTS", "code": "ielts", "description": "International English Language Testing System" },
+    { "id": "uuid", "name": "TOEIC", "code": "toeic", "description": "Test of English for International Communication" }
+  ],
+  "message": "Exam types fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get Exam Type by ID
+
+Returns a single exam type.
+
+**Endpoint:** `GET /exam/exam-types/:id`
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "IELTS",
+    "code": "ielts",
+    "description": "International English Language Testing System"
+  },
+  "message": "Exam type fetched successfully",
+  "status": 200
+}
+```
+
+---
+
 ## Create Part
 
 Creates a new part within an exam.
@@ -99,6 +254,78 @@ Creates a new part within an exam.
   },
   "message": "Part created successfully",
   "status": 201
+}
+```
+
+---
+
+## Get Parts by Exam
+
+Returns all parts for a given exam (with question groups).
+
+**Endpoint:** `GET /exam/parts/exam/:examId`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Section 1",
+      "type": "listening",
+      "partOrder": 1,
+      "score": 10,
+      "questionGroups": [
+        { "id": "uuid", "groupOrder": 1, "type": "single", "content": "..." }
+      ]
+    }
+  ],
+  "message": "Parts fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get Part Details
+
+Returns a single part with its question groups and questions.
+
+**Endpoint:** `GET /exam/part/:partId`
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "Section 1",
+    "type": "listening",
+    "partOrder": 1,
+    "instruction": "Listen to the conversation and answer questions 1-5",
+    "score": 10,
+    "questionGroups": [
+      {
+        "id": "uuid",
+        "groupOrder": 1,
+        "content": "Listen to the following conversation...",
+        "audioUrl": "https://cdn.example.com/audio/uuid.mp3",
+        "questions": [
+          {
+            "id": "uuid",
+            "type": "group",
+            "content": "What is the speaker's main concern?",
+            "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+            "score": 1,
+            "questionOrder": 1
+          }
+        ]
+      }
+    ]
+  },
+  "message": "Part fetched successfully",
+  "status": 200
 }
 ```
 
@@ -141,17 +368,80 @@ Creates a question group (e.g., a shared passage or audio segment) within a part
 
 ---
 
+## Get Question Groups by Part
+
+Returns all question groups for a part (with their questions).
+
+**Endpoint:** `GET /exam/question-group/part/:partId`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "groupOrder": 1,
+      "content": "Listen to the following conversation...",
+      "type": "single",
+      "questions": [
+        { "id": "uuid", "content": "What is the speaker's main concern?", "questionOrder": 1 }
+      ]
+    }
+  ],
+  "message": "Question groups fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get Question Group
+
+Returns a single question group with its questions.
+
+**Endpoint:** `GET /exam/question-group/:id`
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "groupOrder": 1,
+    "content": "Listen to the following conversation...",
+    "transcript": "Full transcript text...",
+    "type": "single",
+    "audioUrl": "https://cdn.example.com/audio/uuid.mp3",
+    "questions": [
+      {
+        "id": "uuid",
+        "type": "group",
+        "content": "What is the speaker's main concern?",
+        "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+        "score": 1,
+        "questionOrder": 1
+      }
+    ]
+  },
+  "message": "Question group fetched successfully",
+  "status": 200
+}
+```
+
+---
+
 ## Upload Question Group Audio
 
 Uploads an audio file for a question group. This endpoint uses `multipart/form-data` (no JSON).
 
 **Endpoint:** `PATCH /exam/question-group/:questionGroupId/upload-audio`
 
-**Headers:** No `Authorization` header needed. The user ID is passed via `x-user-id` header.
+**Headers:** The user ID is passed via `x-user-id` header.
 
-| Header       | Value     |
-|-------------|-----------|
-| `x-user-id`  | `uuid`    |
+| Header       | Value  |
+|-------------|--------|
+| `x-user-id` | `uuid` |
 
 **Request Body:** `multipart/form-data`
 
@@ -215,6 +505,87 @@ Creates a question that belongs to a question group.
   },
   "message": "Question created successfully",
   "status": 201
+}
+```
+
+---
+
+## Get Questions by Group
+
+Returns all questions in a question group (sorted by question order).
+
+**Endpoint:** `GET /exam/question/by-group/:questionGroupId`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "type": "group",
+      "content": "What is the speaker's main concern?",
+      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+      "score": 1,
+      "questionOrder": 1
+    }
+  ],
+  "message": "Questions fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get Questions by Part (Standalone)
+
+Returns standalone questions that belong directly to a part (not inside a group).
+
+**Endpoint:** `GET /exam/question/by-part/:partId`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "type": "separate",
+      "content": "What is the sum of 2 and 3?",
+      "options": { "A": "4", "B": "5", "C": "6", "D": "7" },
+      "score": 1,
+      "questionOrder": 1
+    }
+  ],
+  "message": "Questions fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get Question by ID
+
+Returns a single question.
+
+**Endpoint:** `GET /exam/question/:id`
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "type": "group",
+    "content": "What is the speaker's main concern?",
+    "explanation": "The speaker mentions that...",
+    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+    "correctOption": { "key": "B" },
+    "score": 1,
+    "questionOrder": 1
+  },
+  "message": "Question fetched successfully",
+  "status": 200
 }
 ```
 
@@ -298,6 +669,73 @@ Starts a new exam session (attempt).
 
 ---
 
+## Get Session
+
+Returns session details with exam info and user answers.
+
+**Endpoint:** `GET /exam/session/:sessionId`
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "userId": "uuid",
+    "status": "in_progress",
+    "startedAt": "2026-06-12T12:00:00.000Z",
+    "timeLimitSeconds": 1800,
+    "exam": {
+      "id": "uuid",
+      "name": "IELTS Listening Test 1",
+      "examType": { "id": "uuid", "name": "IELTS", "code": "ielts" }
+    },
+    "userAnswers": [
+      {
+        "id": "uuid",
+        "question": { "id": "uuid", "content": "What is...", "correctOption": { "key": "B" } },
+        "selectedOption": { "key": "B" },
+        "isCorrect": true,
+        "score": 1
+      }
+    ]
+  },
+  "message": "Session fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Get My Sessions
+
+Returns all sessions for the current authenticated user.
+
+**Endpoint:** `GET /exam/sessions/my`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "status": "completed",
+      "startedAt": "2026-06-12T12:00:00.000Z",
+      "totalScore": 7,
+      "totalCorrect": 7,
+      "totalQuestions": 10,
+      "correctRatio": 0.7,
+      "exam": { "id": "uuid", "name": "IELTS Listening Test 1" }
+    }
+  ],
+  "message": "Sessions fetched successfully",
+  "status": 200
+}
+```
+
+---
+
 ## Submit Answers
 
 Saves (or updates) answers for an in-progress session. Can be called multiple times — previously saved answers for the same question are overwritten.
@@ -376,14 +814,28 @@ Finalizes an in-progress session: calculates scores, marks it completed, and ret
 
 ## Summary
 
-| Endpoint                                              | Method | Auth Required | Notes                    |
-|-------------------------------------------------------|--------|---------------|--------------------------|
-| `/exam`                                               | POST   | Yes           | —                        |
-| `/exam/:examId/part`                                  | POST   | Yes           | —                        |
-| `/exam/part/:partId/question-group`                   | POST   | Yes           | —                        |
-| `/exam/question-group/:questionGroupId/upload-audio`  | PATCH  | `x-user-id` header | `multipart/form-data` |
-| `/exam/question-group/:questionGroupId/question`       | POST   | Yes           | —                        |
-| `/exam/part/:partId/question`                         | POST   | Yes           | —                        |
-| `/exam/create-session/:examId`                        | POST   | Yes           | —                        |
-| `/exam/submit-answers/:sessionId`                     | POST   | Yes           | —                        |
-| `/exam/finish-session/:sessionId`                     | POST   | Yes           | —                        |
+| Endpoint                                              | Method | Notes                    |
+|-------------------------------------------------------|--------|--------------------------|
+| `/exam`                                               | GET    | List published exams     |
+| `/exam`                                               | POST   | Create exam              |
+| `/exam/:examId`                                       | GET    | Full exam tree           |
+| `/exam/my`                                            | GET    | User's own exams         |
+| `/exam/exam-types`                                    | GET    | List exam types          |
+| `/exam/exam-types/:id`                                | GET    | Exam type by ID          |
+| `/exam/:examId/part`                                  | POST   | Create part              |
+| `/exam/parts/exam/:examId`                            | GET    | Parts by exam            |
+| `/exam/part/:partId`                                  | GET    | Part details with groups |
+| `/exam/part/:partId/question-group`                   | POST   | Create question group    |
+| `/exam/part/:partId/question-group`                   | GET    | Groups by part           |
+| `/exam/question-group/:id`                            | GET    | Group with questions     |
+| `/exam/question-group/:questionGroupId/upload-audio`  | PATCH  | `multipart/form-data`    |
+| `/exam/question-group/:questionGroupId/question`       | POST   | Create question in group |
+| `/exam/question/by-group/:questionGroupId`            | GET    | Questions in group       |
+| `/exam/question/by-part/:partId`                      | GET    | Standalone questions     |
+| `/exam/question/:id`                                  | GET    | Question by ID           |
+| `/exam/part/:partId/question`                         | POST   | Create standalone question|
+| `/exam/create-session/:examId`                        | POST   | Start session            |
+| `/exam/session/:sessionId`                            | GET    | Session details          |
+| `/exam/sessions/my`                                   | GET    | User's sessions          |
+| `/exam/submit-answers/:sessionId`                     | POST   | Submit answers           |
+| `/exam/finish-session/:sessionId`                     | POST   | Finish & score           |

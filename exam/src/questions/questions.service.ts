@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Question } from "src/entities/questions.entity";
@@ -97,5 +97,30 @@ export class QuestionsService {
         if (body.questionOrder !== undefined) question.questionOrder = body.questionOrder;
 
         return await this.questionRepository.save(question);
+    }
+
+    async findOneById(id: string) {
+        const question = await this.questionRepository.findOne({
+            where: { id },
+            relations: { questionGroup: true },
+        });
+        if (!question) {
+            throw new NotFoundException("Question not found");
+        }
+        return question;
+    }
+
+    async findByGroupId(questionGroupId: string) {
+        return await this.questionRepository.find({
+            where: { questionGroup: { id: questionGroupId } },
+            order: { questionOrder: "ASC" },
+        });
+    }
+
+    async findByPartId(partId: string) {
+        return await this.questionRepository.find({
+            where: { partId },
+            order: { questionOrder: "ASC" },
+        });
     }
 }

@@ -1,7 +1,8 @@
-import { Body, Controller, HttpStatus, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Req } from "@nestjs/common";
 import { CreateExamDto, UpdateExamDto } from "src/dto/exam_module.dto";
 import { ExamService } from "./exams.service";
-import { BodyTokenPayload } from "src/interfaces/payload";
+import { BodyTokenPayload, TokenPayload } from "src/interfaces/payload";
+import type { Request } from "express";
 
 @Controller()
 export class ExamController {
@@ -16,5 +17,35 @@ export class ExamController {
     async updateExam(@Body() body: UpdateExamDto & BodyTokenPayload) {
         const data = await this.examService.update(body);
         return { data, message: "Exam updated successfully", status: HttpStatus.OK };
+    }
+
+    @Get()
+    async findAllPublished() {
+        const data = await this.examService.findAllPublished();
+        return { data, message: "Exams fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get(":examId")
+    async findOneWithFullTree(@Param("examId") examId: string) {
+        const data = await this.examService.findOneWithFullTree(examId);
+        return { data, message: "Exam fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get("my/all")
+    async findMyExams(@Req() req: Request & { payload: TokenPayload }) {
+        const data = await this.examService.findMyExams(req.payload);
+        return { data, message: "My exams fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get("exam-types")
+    async findAllExamTypes() {
+        const data = await this.examService.findAllExamTypes();
+        return { data, message: "Exam types fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get("exam-types/:id")
+    async findExamTypeById(@Param("id") id: string) {
+        const data = await this.examService.findExamTypeById(id);
+        return { data, message: "Exam type fetched successfully", status: HttpStatus.OK };
     }
 }
