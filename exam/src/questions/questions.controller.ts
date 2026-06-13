@@ -25,12 +25,6 @@ export class QuestionsController {
         return { data, message: "Question updated successfully", status: HttpStatus.OK };
     }
 
-    @Get(":id")
-    async findOne(@Param("id") id: string) {
-        const data = await this.questionsService.findOneById(id);
-        return { data, message: "Question fetched successfully", status: HttpStatus.OK };
-    }
-
     @Get("by-group/:questionGroupId")
     async findByGroup(@Param("questionGroupId") questionGroupId: string) {
         const data = await this.questionsService.findByGroupId(questionGroupId);
@@ -41,5 +35,11 @@ export class QuestionsController {
     async findByPart(@Param("partId") partId: string) {
         const data = await this.questionsService.findByPartId(partId);
         return { data, message: "Questions fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get(":id")
+    async findOne(@Param("id") id: string) {
+        const data = await this.questionsService.findOneById(id);
+        return { data, message: "Question fetched successfully", status: HttpStatus.OK };
     }
 }

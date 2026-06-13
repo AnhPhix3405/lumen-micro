@@ -1,8 +1,15 @@
 import { Body, Controller, Get, HttpStatus, Param, Post, Req } from '@nestjs/common';
 import { SubmitsService } from './submits.service';
 import { CreateSubmitDto, FinishSessionDto, SubmitAnswersDto } from 'src/dto/submit_module.dto';
-import { BodyTokenPayload, TokenPayload } from 'src/interfaces/payload';
+import type { BodyTokenPayload, TokenPayload } from 'src/interfaces/payload';
 import type { Request } from 'express';
+
+function payloadFromHeaders(req: Request): TokenPayload {
+    return {
+        userId: req.headers["x-user-id"] as string,
+        accountId: req.headers["x-account-id"] as string,
+    };
+}
 
 @Controller("session")
 export class SubmitsController {
@@ -32,18 +39,18 @@ export class SubmitsController {
         return { data, message: "Session finished successfully", status: HttpStatus.OK };
     }
 
+    @Get('user/all')
+    async findUserSessions(@Req() req: Request) {
+        const data = await this.submitsService.findUserSessions(payloadFromHeaders(req));
+        return { data, message: "Sessions fetched successfully", status: HttpStatus.OK };
+    }
+
     @Get(':sessionId')
     async findSession(
         @Param('sessionId') sessionId: string,
-        @Req() req: Request & { payload: TokenPayload },
+        @Req() req: Request,
     ) {
-        const data = await this.submitsService.findSessionById(sessionId, req.payload);
+        const data = await this.submitsService.findSessionById(sessionId, payloadFromHeaders(req));
         return { data, message: "Session fetched successfully", status: HttpStatus.OK };
-    }
-
-    @Get('user/all')
-    async findUserSessions(@Req() req: Request & { payload: TokenPayload }) {
-        const data = await this.submitsService.findUserSessions(req.payload);
-        return { data, message: "Sessions fetched successfully", status: HttpStatus.OK };
     }
 }

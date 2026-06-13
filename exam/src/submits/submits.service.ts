@@ -225,6 +225,8 @@ export class SubmitsService {
     }
 
     async findUserSessions(payload: TokenPayload) {
+        console.log('findUserSessions');
+        console.log(payload);
         return await this.submitRepository.find({
             where: { userId: payload.userId },
             relations: { exam: true },

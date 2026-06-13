@@ -58,23 +58,16 @@ export class ExamController {
         return (await result).data;
     }
 
-    @Get(":examId")
-    @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: "Get full exam tree with parts, groups, and questions" })
-    @ApiParam({ name: "examId", description: "Exam UUID" })
-    @ApiResponse({ status: 200, description: "Full exam tree" })
-    async findOneWithFullTree(@Param("examId") examId: string) {
-        const result = axios.get(`${this.examUrl}/${examId}`);
-        return (await result).data;
-    }
-
     @Get("my")
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Get current user's own exams" })
     @ApiResponse({ status: 200, description: "User's exams" })
     async findMyExams(@Req() req: Request & { payload: TokenPayload }) {
         const result = axios.get(`${this.examUrl}/my/all`, {
-            data: req.payload,
+            headers: {
+                "x-user-id": req.payload.payload.userId,
+                "x-account-id": req.payload.payload.accountId,
+            },
         });
         return (await result).data;
     }
@@ -95,6 +88,16 @@ export class ExamController {
     @ApiResponse({ status: 200, description: "Exam type details" })
     async findExamTypeById(@Param("id") id: string) {
         const result = axios.get(`${this.examUrl}/exam-types/${id}`);
+        return (await result).data;
+    }
+
+    @Get(":examId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get full exam tree with parts, groups, and questions" })
+    @ApiParam({ name: "examId", description: "Exam UUID" })
+    @ApiResponse({ status: 200, description: "Full exam tree" })
+    async findOneWithFullTree(@Param("examId") examId: string) {
+        const result = axios.get(`${this.examUrl}/${examId}`);
         return (await result).data;
     }
 
@@ -210,16 +213,6 @@ export class ExamController {
         return (await result).data;
     }
 
-    @Get("question/:id")
-    @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: "Get a single question by ID" })
-    @ApiParam({ name: "id", description: "Question UUID" })
-    @ApiResponse({ status: 200, description: "Question details" })
-    async findQuestion(@Param("id") id: string) {
-        const result = axios.get(`${this.examUrl}/question/${id}`);
-        return (await result).data;
-    }
-
     @Get("question/by-group/:questionGroupId")
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Get all questions in a question group" })
@@ -237,6 +230,16 @@ export class ExamController {
     @ApiResponse({ status: 200, description: "List of questions" })
     async findQuestionsByPart(@Param("partId") partId: string) {
         const result = axios.get(`${this.examUrl}/question/by-part/${partId}`);
+        return (await result).data;
+    }
+
+    @Get("question/:id")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get a single question by ID" })
+    @ApiParam({ name: "id", description: "Question UUID" })
+    @ApiResponse({ status: 200, description: "Question details" })
+    async findQuestion(@Param("id") id: string) {
+        const result = axios.get(`${this.examUrl}/question/${id}`);
         return (await result).data;
     }
 
@@ -295,7 +298,10 @@ export class ExamController {
     @ApiResponse({ status: 200, description: "Session details" })
     async findSession(@Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
         const result = axios.get(`${this.examUrl}/session/${sessionId}`, {
-            data: req.payload,
+            headers: {
+                "x-user-id": req.payload.payload.userId,
+                "x-account-id": req.payload.payload.accountId,
+            },
         });
         return (await result).data;
     }
@@ -306,7 +312,10 @@ export class ExamController {
     @ApiResponse({ status: 200, description: "User's sessions" })
     async findUserSessions(@Req() req: Request & { payload: TokenPayload }) {
         const result = axios.get(`${this.examUrl}/session/user/all`, {
-            data: req.payload,
+            headers: {
+                "x-user-id": req.payload.payload.userId,
+                "x-account-id": req.payload.payload.accountId,
+            },
         });
         return (await result).data;
     }
