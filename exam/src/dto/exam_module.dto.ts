@@ -17,10 +17,6 @@ export class CreateExamDto {
 
     @IsString()
     @IsNotEmpty()
-    visibility: string;
-
-    @IsString()
-    @IsNotEmpty()
     userId: string;
 
     @IsString()
@@ -29,10 +25,6 @@ export class CreateExamDto {
     @IsString()
     @IsNotEmpty()
     examTypeId: string;
-
-    @IsBoolean()
-    @IsNotEmpty()
-    isPublished: boolean;
 }
 
 
@@ -56,18 +48,10 @@ export class UpdateExamDto {
     totalScore: number;
 
     @IsString()
-    @IsNotEmpty()
-    visibility: string;
-
-    @IsString()
     thumbnailUrl: string;
 
     @IsString()
     @IsNotEmpty()
     examTypeId: string;
-
-    @IsBoolean()
-    @IsNotEmpty()
-    isPublished: boolean;
 }
 

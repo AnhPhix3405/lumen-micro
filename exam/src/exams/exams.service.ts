@@ -19,10 +19,8 @@ export class ExamService {
             description: params.description,
             durationMinutes: params.durationMinutes,
             totalScore: params.totalScore,
-            visibility: params.visibility,
             thumbnailUrl: params.thumbnailUrl,
             examTypeId: params.examTypeId,
-            isPublished: params.isPublished,
         });
         return await this.examRepository.save(exam);
     }
@@ -35,14 +33,13 @@ export class ExamService {
         if (exam.userId !== params.payload.userId) {
             throw new Error("Unauthorized");
         }
-        exam.name ??= params.name;
-        exam.description ??= params.description;
-        exam.durationMinutes ??= params.durationMinutes;
-        exam.totalScore ??= params.totalScore;
-        exam.visibility ??= params.visibility;
-        exam.thumbnailUrl ??= params.thumbnailUrl;
-        exam.examTypeId ??= params.examTypeId;
-        exam.isPublished ??= params.isPublished;
+        console.log(params)
+        if (params.name !== undefined) exam.name = params.name;
+        if (params.description !== undefined) exam.description = params.description;
+        if (params.durationMinutes !== undefined) exam.durationMinutes = params.durationMinutes;
+        if (params.totalScore !== undefined) exam.totalScore = params.totalScore;
+        if (params.thumbnailUrl !== undefined) exam.thumbnailUrl = params.thumbnailUrl;
+        if (params.examTypeId !== undefined) exam.examTypeId = params.examTypeId;
         return await this.examRepository.save(exam);
     }
 

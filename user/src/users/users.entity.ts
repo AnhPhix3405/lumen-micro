@@ -64,4 +64,7 @@ export class User {
 
     @Column({ name: "birthday", type: 'date', nullable: true })
     birthday: Date;
+
+    @Column({ name: 'role', nullable: false, default: 'user' })
+    role: string;
 }

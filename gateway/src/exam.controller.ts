@@ -49,6 +49,19 @@ export class ExamController {
         return (await result).data;
     }
 
+    @Patch("update/:examId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Update an exam" })
+    @ApiBody({ type: UpdateExamDto })
+    @ApiParam({ name: "examId", description: "Exam UUID" })
+    @ApiResponse({ status: 200, description: "Exam updated" })
+    async updateExam(@Body() body: UpdateExamDto, @Req() req: Request & { payload: TokenPayload }, @Param("examId") examId: string) {
+        Object.assign(body, req.payload);
+        Object.assign(body, { examId });
+        const result = axios.patch(`${this.examUrl}`, body);
+        return (await result).data;
+    }
+
     @Get()
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "List all published exams" })
@@ -88,6 +101,16 @@ export class ExamController {
     @ApiResponse({ status: 200, description: "Exam type details" })
     async findExamTypeById(@Param("id") id: string) {
         const result = axios.get(`${this.examUrl}/exam-types/${id}`);
+        return (await result).data;
+    }
+
+    @Post("publish/request")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Request publishing for an exam" })
+    @ApiResponse({ status: 200, description: "Publish request submitted" })
+    async requestPublishing(@Body() body: { examId: string }, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload);
+        const result = axios.post(`${this.examUrl}/publish/request`, body);
         return (await result).data;
     }
 

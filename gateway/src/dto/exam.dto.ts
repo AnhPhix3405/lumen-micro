@@ -27,9 +27,6 @@ export class CreateExamDto {
 }
 
 export class UpdateExamDto {
-    @ApiProperty({ example: "uuid" })
-    examId: string;
-
     @ApiPropertyOptional({ example: "IELTS Listening Test 1" })
     name?: string;
 

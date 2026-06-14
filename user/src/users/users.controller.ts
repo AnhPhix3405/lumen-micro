@@ -140,8 +140,12 @@ export class UsersController {
     @Post("get-user-by-account-id")
     async getUserById(@Body() body: any) {
         const user = await this.userService.getUserByAccountId(body.accountId);
+        if (!user) {
+            throw new BadRequestException("User not found");
+        }
         return {
             userId: user.id,
+            role: user.role,
             message: "Get user successfully"
         };
     }

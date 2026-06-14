@@ -82,17 +82,19 @@ export class AuthService {
             accountId: existAccount.id,
         });
         const userId = response.data.userId;
+        const role = response.data.role;
         const payload = {
             accountId: existAccount.id,
             email: existAccount.email,
             userId: userId,
+            role: role
         }
         const privateKey = fs.readFileSync('src/rs256key/private.pem');
         const accessToken = jwt.sign({
             payload,
         }, privateKey, {
             algorithm: 'RS256',
-            expiresIn: '7d',
+            expiresIn: '90d',
         });
 
         const refeshToken = jwt.sign({
