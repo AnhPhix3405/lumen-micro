@@ -33,7 +33,6 @@ export class ExamService {
         if (exam.userId !== params.payload.userId) {
             throw new Error("Unauthorized");
         }
-        console.log(params)
         if (params.name !== undefined) exam.name = params.name;
         if (params.description !== undefined) exam.description = params.description;
         if (params.durationMinutes !== undefined) exam.durationMinutes = params.durationMinutes;
