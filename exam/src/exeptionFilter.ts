@@ -3,7 +3,6 @@ import {
   Catch,
   ArgumentsHost,
   HttpException,
-  BadRequestException,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 
@@ -20,16 +19,11 @@ export class AllExceptionFilter implements ExceptionFilter {
       status = exception.getStatus();
       const res = exception.getResponse();
       message = typeof res === 'string' ? res : res['message'];
-    }
-
-    if (exception instanceof BadRequestException) {
-      status = exception.getStatus();
-      const res = exception.getResponse();
-      message = typeof res === 'string' ? res : res['message'];
-    }
-
-    if (exception instanceof QueryFailedError) {
+    } else if (exception instanceof QueryFailedError) {
       status = 400;
+      message = exception.message;
+    } else if (exception instanceof Error) {
+      console.error('Unhandled exception:', exception);
       message = exception.message;
     }
 

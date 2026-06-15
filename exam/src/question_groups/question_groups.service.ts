@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { QuestionGroup } from "src/entities/question-groups.entity";
 import { Repository } from "typeorm";
@@ -21,7 +21,7 @@ export class QuestionGroupsService {
             throw new Error("Part not found");
         }
         if (part.exam.userId !== body.payload.userId) {
-            throw new Error("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
         }
         const questionGroup = await this.questionGroupRepository.create({
             partId: body.partId,
@@ -43,7 +43,20 @@ export class QuestionGroupsService {
         userId: string,
         questionGroupId: string
     ): Promise<string> {
-        return "";
+        const secure_url = await this.uploadService.uploadQuestionGroupAudio(req, userId);
+        const questionGroup = await this.questionGroupRepository.findOne({
+            where: { id: questionGroupId },
+            relations: { part: { exam: true } },
+        });
+        if (!questionGroup) {
+            throw new NotFoundException("Question group not found");
+        }
+        if (questionGroup.part.exam.userId !== userId) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+        questionGroup.audioUrl = secure_url;
+        await this.questionGroupRepository.save(questionGroup);
+        return secure_url;
     }
 
     async findByPartId(partId: string) {
