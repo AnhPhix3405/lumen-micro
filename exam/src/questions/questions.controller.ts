@@ -20,8 +20,8 @@ export class QuestionsController {
     }
 
     @Patch("/:questionId")
-    async updateQuestion(@Body() body: UpdateQuestionDto & BodyTokenPayload) {
-        const data = await this.questionsService.update(body);
+    async updateQuestion(@Body() body: UpdateQuestionDto & BodyTokenPayload, @Param("questionId") questionId: string) {
+        const data = await this.questionsService.update(Object.assign(body, { questionId }));
         return { data, message: "Question updated successfully", status: HttpStatus.OK };
     }
 

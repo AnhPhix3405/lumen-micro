@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Question } from "src/entities/questions.entity";
@@ -55,10 +55,13 @@ export class QuestionsService {
             relations: { exam: true },
         });
         if (!part) {
-            throw new Error("Part not found");
+            throw new NotFoundException("Part not found");
         }
         if (part.exam.userId !== params.payload.userId) {
-            throw new Error("Unauthorized");
+            throw new UnauthorizedException("Unauthorized");
+        }
+        if (part.type === 'group') {
+            throw new BadRequestException("Cannot create standalone question in group part");
         }
         const question = this.questionRepository.create({
             partId: params.partId,
@@ -75,28 +78,55 @@ export class QuestionsService {
         return await this.questionRepository.save(question);
     }
 
-    async update(body: UpdateQuestionDto & BodyTokenPayload) {
+    async update(params: UpdateQuestionDto & BodyTokenPayload) {
         const question = await this.questionRepository.findOne({
-            where: { id: body.questionId },
+            where: { id: params.questionId },
             relations: { questionGroup: { part: { exam: true } } },
         });
         if (!question) {
-            throw new Error("Question not found");
+            throw new NotFoundException("Question not found");
         }
-        if (question.questionGroup.part.exam.userId !== body.payload.userId) {
-            throw new Error("Unauthorized");
+        if (question.questionGroup) {
+            if (question.questionGroup.part.exam.userId !== params.payload.userId) {
+                throw new UnauthorizedException("Unauthorized");
+            }
         }
 
-        if (body.content !== undefined) question.content = body.content;
-        if (body.explanation !== undefined) question.explanation = body.explanation;
-        if (body.audioUrl !== undefined) question.audioUrl = body.audioUrl;
-        if (body.imageUrl !== undefined) question.imageUrl = body.imageUrl;
-        if (body.options !== undefined) question.options = body.options;
-        if (body.correctOption !== undefined) question.correctOption = body.correctOption;
-        if (body.score !== undefined) question.score = body.score;
-        if (body.questionOrder !== undefined) question.questionOrder = body.questionOrder;
+        if (question.partId) {
+            const part = await this.partRepository.findOne({
+                where: { id: question.partId },
+                relations: { exam: true },
+            });
+            if (!part) {
+                throw new NotFoundException("Part not found");
+            }
+            if (part.exam.userId !== params.payload.userId) {
+                throw new UnauthorizedException("Unauthorized");
+            }
+        }
 
-        return await this.questionRepository.save(question);
+        const updateData: Partial<Question> = {};
+        if (params.content !== undefined) updateData.content = params.content;
+        if (params.explanation !== undefined) updateData.explanation = params.explanation;
+        if (params.audioUrl !== undefined) updateData.audioUrl = params.audioUrl;
+        if (params.imageUrl !== undefined) updateData.imageUrl = params.imageUrl;
+        if (params.options !== undefined) updateData.options = params.options;
+        if (params.correctOption !== undefined) updateData.correctOption = params.correctOption;
+        if (params.score !== undefined) updateData.score = params.score;
+        if (params.questionOrder !== undefined) updateData.questionOrder = params.questionOrder;
+
+        if (Object.keys(updateData).length > 0) {
+            await this.questionRepository
+                .createQueryBuilder()
+                .update(Question)
+                .set(updateData)
+                .where("id = :id", { id: params.questionId })
+                .execute();
+        }
+
+        return await this.questionRepository.findOne({
+            where: { id: params.questionId },
+        });
     }
 
     async findOneById(id: string) {

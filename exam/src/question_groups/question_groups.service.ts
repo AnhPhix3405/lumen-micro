@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { QuestionGroup } from "src/entities/question-groups.entity";
 import { Repository } from "typeorm";
@@ -22,6 +22,9 @@ export class QuestionGroupsService {
         }
         if (part.exam.userId !== body.payload.userId) {
             throw new UnauthorizedException("Unauthorized");
+        }
+        if (part.type === 'standalone') {
+            throw new BadRequestException("Cannot create group question in standalone part");
         }
         const questionGroup = await this.questionGroupRepository.create({
             partId: body.partId,

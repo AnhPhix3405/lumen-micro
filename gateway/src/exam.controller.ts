@@ -278,6 +278,18 @@ export class ExamController {
         return (await result).data;
     }
 
+    @Patch("question/:questionId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Update a question" })
+    @ApiParam({ name: "questionId", description: "Question UUID" })
+    @ApiBody({ type: UpdateQuestionDto })
+    @ApiResponse({ status: 200, description: "Question updated" })
+    async updateQuestion(@Body() body: UpdateQuestionDto, @Param("questionId") questionId: string, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload, { questionId });
+        const result = axios.patch(`${this.examUrl}/question/${questionId}`, body);
+        return (await result).data;
+    }
+
     @Post("create-session/:examId")
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Start a new exam session" })

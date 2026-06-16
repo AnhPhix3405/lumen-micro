@@ -66,6 +66,47 @@ Creates a new exam.
 
 ---
 
+## Update Exam
+
+Updates an existing exam.
+
+**Endpoint:** `PATCH /exam/update/:examId`
+
+**Request Body:**
+
+```json
+{
+  "name": "IELTS Listening Test 1 - Updated",
+  "description": "Updated description",
+  "durationMinutes": 45,
+  "totalScore": 40,
+  "visibility": "public",
+  "thumbnailUrl": "https://cdn.example.com/thumb-new.jpg",
+  "examTypeId": "uuid-of-exam-type",
+  "isPublished": true
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "name": "IELTS Listening Test 1 - Updated",
+    "description": "Updated description",
+    "durationMinutes": 45,
+    "totalScore": 40,
+    "visibility": "public",
+    "isPublished": true
+  },
+  "message": "Exam updated successfully",
+  "status": 200
+}
+```
+
+---
+
 ## List All Published Exams
 
 Returns all published exams (summary, without deep relations).
@@ -221,6 +262,35 @@ Returns a single exam type.
 
 ---
 
+## Request Publishing
+
+Requests publishing for an exam.
+
+**Endpoint:** `POST /exam/publish/request`
+
+**Request Body:**
+
+```json
+{
+  "examId": "uuid-of-exam"
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "examId": "uuid",
+    "status": "pending"
+  },
+  "message": "Publish request submitted successfully",
+  "status": 200
+}
+```
+
+---
+
 ## Create Part
 
 Creates a new part within an exam.
@@ -333,7 +403,7 @@ Returns a single part with its question groups and questions.
 
 ## Create Question Group
 
-Creates a question group (e.g., a shared passage or audio segment) within a part.
+Creates a question group (e.g., a shared passage or audio segment) within a part. This endpoint requires the part's `type` to be `"group"` — it **cannot** be called on a part whose type is `"standalone"`.
 
 **Endpoint:** `POST /exam/part/:partId/question-group`
 
@@ -363,6 +433,17 @@ Creates a question group (e.g., a shared passage or audio segment) within a part
   },
   "message": "Question group created successfully",
   "status": 201
+}
+```
+
+**Error `400` (standalone part):**
+
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": "Cannot create group question in standalone part",
+  "timestamp": "2026-06-12T12:00:00.000Z"
 }
 ```
 
@@ -453,10 +534,7 @@ Uploads an audio file for a question group. This endpoint uses `multipart/form-d
 
 ```json
 {
-  "data": {
-    "id": "uuid",
-    "audioUrl": "https://cdn.example.com/audio/uuid.mp3"
-  },
+  "data": "https://cdn.example.com/audio/uuid.mp3",
   "message": "Question group audio uploaded successfully",
   "status": 200
 }
@@ -591,9 +669,54 @@ Returns a single question.
 
 ---
 
+## Update Question
+
+Updates an existing question's fields. The `questionId` comes from the URL path — do **not** include it in the request body. All other fields are optional; only provided fields are updated.
+
+**Endpoint:** `PATCH /exam/question/:questionId`
+
+**Request Body:**
+
+```json
+{
+  "content": "What is the speaker's main concern?",
+  "explanation": "The speaker mentions that...",
+  "options": {
+    "A": "Option A text",
+    "B": "Option B text",
+    "C": "Option C text",
+    "D": "Option D text"
+  },
+  "correctOption": {
+    "key": "B"
+  },
+  "score": 2,
+  "questionOrder": 1
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "type": "group",
+    "content": "What is the speaker's main concern?",
+    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+    "score": 2,
+    "questionOrder": 1
+  },
+  "message": "Question updated successfully",
+  "status": 200
+}
+```
+
+---
+
 ## Create Separate Question in Part
 
-Creates a standalone question directly in a part (not inside a group).
+Creates a standalone question directly in a part (not inside a group). This endpoint requires the part's `type` to be `"standalone"` — it **cannot** be called on a part whose type is `"group"`.
 
 **Endpoint:** `POST /exam/part/:partId/question`
 
@@ -632,6 +755,17 @@ Creates a standalone question directly in a part (not inside a group).
   },
   "message": "Question created successfully",
   "status": 201
+}
+```
+
+**Error `400` (group part):**
+
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": "Cannot create standalone question in group part",
+  "timestamp": "2026-06-12T12:00:00.000Z"
 }
 ```
 
@@ -818,21 +952,24 @@ Finalizes an in-progress session: calculates scores, marks it completed, and ret
 |-------------------------------------------------------|--------|--------------------------|
 | `/exam`                                               | GET    | List published exams     |
 | `/exam`                                               | POST   | Create exam              |
+| `/exam/update/:examId`                                | PATCH  | Update exam              |
 | `/exam/:examId`                                       | GET    | Full exam tree           |
 | `/exam/my`                                            | GET    | User's own exams         |
 | `/exam/exam-types`                                    | GET    | List exam types          |
 | `/exam/exam-types/:id`                                | GET    | Exam type by ID          |
+| `/exam/publish/request`                               | POST   | Request publishing       |
 | `/exam/:examId/part`                                  | POST   | Create part              |
 | `/exam/parts/exam/:examId`                            | GET    | Parts by exam            |
 | `/exam/part/:partId`                                  | GET    | Part details with groups |
 | `/exam/part/:partId/question-group`                   | POST   | Create question group    |
-| `/exam/part/:partId/question-group`                   | GET    | Groups by part           |
+| `/exam/question-group/part/:partId`                   | GET    | Groups by part           |
 | `/exam/question-group/:id`                            | GET    | Group with questions     |
 | `/exam/question-group/:questionGroupId/upload-audio`  | PATCH  | `multipart/form-data`    |
-| `/exam/question-group/:questionGroupId/question`       | POST   | Create question in group |
+| `/exam/question-group/:questionGroupId/question`      | POST   | Create question in group |
 | `/exam/question/by-group/:questionGroupId`            | GET    | Questions in group       |
 | `/exam/question/by-part/:partId`                      | GET    | Standalone questions     |
 | `/exam/question/:id`                                  | GET    | Question by ID           |
+| `/exam/question/:questionId`                          | PATCH  | Update question          |
 | `/exam/part/:partId/question`                         | POST   | Create standalone question|
 | `/exam/create-session/:examId`                        | POST   | Start session            |
 | `/exam/session/:sessionId`                            | GET    | Session details          |
