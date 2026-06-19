@@ -13,7 +13,6 @@ import {
     CreateQuestionGroupDto,
     CreateQuestionInGroupDto,
     CreateSeparateQuestionDto,
-    UpdateQuestionDto,
     CreateSubmitDto,
     SubmitAnswersDto,
     FinishSessionDto,
@@ -236,36 +235,6 @@ export class ExamController {
         return (await result).data;
     }
 
-    @Get("question/by-group/:questionGroupId")
-    @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: "Get all questions in a question group" })
-    @ApiParam({ name: "questionGroupId", description: "Question group UUID" })
-    @ApiResponse({ status: 200, description: "List of questions" })
-    async findQuestionsByGroup(@Param("questionGroupId") questionGroupId: string) {
-        const result = axios.get(`${this.examUrl}/question/by-group/${questionGroupId}`);
-        return (await result).data;
-    }
-
-    @Get("question/by-part/:partId")
-    @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: "Get standalone questions in a part" })
-    @ApiParam({ name: "partId", description: "Part UUID" })
-    @ApiResponse({ status: 200, description: "List of questions" })
-    async findQuestionsByPart(@Param("partId") partId: string) {
-        const result = axios.get(`${this.examUrl}/question/by-part/${partId}`);
-        return (await result).data;
-    }
-
-    @Get("question/:id")
-    @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: "Get a single question by ID" })
-    @ApiParam({ name: "id", description: "Question UUID" })
-    @ApiResponse({ status: 200, description: "Question details" })
-    async findQuestion(@Param("id") id: string) {
-        const result = axios.get(`${this.examUrl}/question/${id}`);
-        return (await result).data;
-    }
-
     @Post("part/:partId/question")
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Create a standalone question in a part" })
@@ -275,18 +244,6 @@ export class ExamController {
     async createQuestion(@Body() body: CreateSeparateQuestionDto, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
         const result = axios.post(`${this.examUrl}/question/part/${partId}`, body);
-        return (await result).data;
-    }
-
-    @Patch("question/:questionId")
-    @UseGuards(JwtAuthGuard)
-    @ApiOperation({ summary: "Update a question" })
-    @ApiParam({ name: "questionId", description: "Question UUID" })
-    @ApiBody({ type: UpdateQuestionDto })
-    @ApiResponse({ status: 200, description: "Question updated" })
-    async updateQuestion(@Body() body: UpdateQuestionDto, @Param("questionId") questionId: string, @Req() req: Request & { payload: TokenPayload }) {
-        Object.assign(body, req.payload, { questionId });
-        const result = axios.patch(`${this.examUrl}/question/${questionId}`, body);
         return (await result).data;
     }
 

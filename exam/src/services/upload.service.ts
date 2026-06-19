@@ -37,6 +37,26 @@ export class UploadService {
         return url[0].secure_url;
     }
 
+    async uploadQuestionAudio(req: Request, userId: string): Promise<string> {
+        const uploadConfig: IUploadConfig = {
+            MAX_FILE_SIZE: 5 * 1024 * 1024,
+            MAX_FILES: 1,
+            ALLOWED_MIME_TYPES: ["audio/mpeg"]
+        };
+        const url = await this.processUpload(req, userId, "questions", uploadConfig);
+        return url[0].secure_url;
+    }
+
+    async uploadQuestionImage(req: Request, userId: string): Promise<string> {
+        const uploadConfig: IUploadConfig = {
+            MAX_FILE_SIZE: 5 * 1024 * 1024,
+            MAX_FILES: 1,
+            ALLOWED_MIME_TYPES: ["image/jpeg", "image/png", "image/jpg"]
+        };
+        const url = await this.processUpload(req, userId, "questions", uploadConfig);
+        return url[0].secure_url;
+    }
+
     private processUpload(
         req: Request, userId: string, folderPath: string, uploadConfig: IUploadConfig
     ): Promise<cloudinary.UploadApiResponse[]> {

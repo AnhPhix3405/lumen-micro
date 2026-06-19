@@ -1,7 +1,8 @@
-import { Body, Controller, Get, HttpStatus, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Req } from "@nestjs/common";
 import { QuestionsService } from "./questions.service";
 import { CreateQuestionDto, CreateQuestionInGroupDto, UpdateQuestionDto } from "src/dto/question_module.dto";
 import type { BodyTokenPayload } from "src/interfaces/payload";
+import type { Request } from "express";
 
 @Controller("question")
 export class QuestionsController {
@@ -23,6 +24,26 @@ export class QuestionsController {
     async updateQuestion(@Body() body: UpdateQuestionDto & BodyTokenPayload, @Param("questionId") questionId: string) {
         const data = await this.questionsService.update(Object.assign(body, { questionId }));
         return { data, message: "Question updated successfully", status: HttpStatus.OK };
+    }
+
+    @Patch("/:questionId/upload-audio")
+    async uploadQuestionAudio(
+        @Req() req: Request,
+        @Param("questionId") questionId: string
+    ) {
+        const userId = req.headers["x-user-id"] as string;
+        const data = await this.questionsService.uploadQuestionAudio(req, userId, questionId);
+        return { data, message: "Question audio uploaded successfully", status: HttpStatus.OK };
+    }
+
+    @Patch("/:questionId/upload-image")
+    async uploadQuestionImage(
+        @Req() req: Request,
+        @Param("questionId") questionId: string
+    ) {
+        const userId = req.headers["x-user-id"] as string;
+        const data = await this.questionsService.uploadQuestionImage(req, userId, questionId);
+        return { data, message: "Question image uploaded successfully", status: HttpStatus.OK };
     }
 
     @Get("by-group/:questionGroupId")

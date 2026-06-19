@@ -7,6 +7,8 @@ import { Part } from "src/entities/parts.entity";
 import { Exam } from "src/entities/exams.entity";
 import { CreateQuestionDto, CreateQuestionInGroupDto, UpdateQuestionDto } from "src/dto/question_module.dto";
 import type { BodyTokenPayload } from "src/interfaces/payload";
+import { UploadService } from "src/services/upload.service";
+import type { Request } from "express";
 @Injectable()
 export class QuestionsService {
     constructor(
@@ -14,6 +16,7 @@ export class QuestionsService {
         @InjectRepository(QuestionGroup) private readonly questionGroupRepository: Repository<QuestionGroup>,
         @InjectRepository(Part) private readonly partRepository: Repository<Part>,
         @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
+        private readonly uploadService: UploadService,
     ) { }
 
     async createInGroup(params: CreateQuestionInGroupDto & BodyTokenPayload) {
@@ -127,6 +130,40 @@ export class QuestionsService {
         return await this.questionRepository.findOne({
             where: { id: params.questionId },
         });
+    }
+
+    async uploadQuestionAudio(req: Request, userId: string, questionId: string) {
+        const secure_url = await this.uploadService.uploadQuestionAudio(req, userId);
+        const question = await this.questionRepository.findOne({
+            where: { id: questionId },
+            relations: { part: { exam: true } },
+        });
+        if (!question) {
+            throw new NotFoundException("Question not found");
+        }
+        if (question.part.exam.userId !== userId) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+        question.audioUrl = secure_url;
+        await this.questionRepository.save(question);
+        return secure_url;
+    }
+
+    async uploadQuestionImage(req: Request, userId: string, questionId: string) {
+        const secure_url = await this.uploadService.uploadQuestionImage(req, userId);
+        const question = await this.questionRepository.findOne({
+            where: { id: questionId },
+            relations: { part: { exam: true } },
+        });
+        if (!question) {
+            throw new NotFoundException("Question not found");
+        }
+        if (question.part.exam.userId !== userId) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+        question.imageUrl = secure_url;
+        await this.questionRepository.save(question);
+        return secure_url;
     }
 
     async findOneById(id: string) {
