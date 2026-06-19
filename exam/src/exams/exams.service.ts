@@ -70,6 +70,7 @@ export class ExamService {
                     questionGroups: {
                         questions: true,
                     },
+                    questions: true,
                 },
             },
             order: {

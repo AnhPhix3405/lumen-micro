@@ -88,9 +88,11 @@ export class PartsService {
                 questionGroups: {
                     questions: true,
                 },
+                questions: true,
             },
             order: {
                 questionGroups: { groupOrder: "ASC" },
+                questions: { questionOrder: "ASC" },
             },
         });
         if (!part) {
