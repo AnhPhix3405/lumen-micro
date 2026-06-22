@@ -63,8 +63,8 @@ export class QuestionsService {
         if (part.exam.userId !== params.payload.userId) {
             throw new UnauthorizedException("Unauthorized");
         }
-        if (part.type === 'group') {
-            throw new BadRequestException("Cannot create standalone question in group part");
+        if (part.type !== "standalone") {
+            throw new BadRequestException("Only standalone part can have standalone question");
         }
         const question = this.questionRepository.create({
             partId: params.partId,

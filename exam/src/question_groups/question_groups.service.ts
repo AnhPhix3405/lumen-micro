@@ -23,8 +23,8 @@ export class QuestionGroupsService {
         if (part.exam.userId !== body.payload.userId) {
             throw new UnauthorizedException("Unauthorized");
         }
-        if (part.type === 'standalone') {
-            throw new BadRequestException("Cannot create group question in standalone part");
+        if (part.type !== 'group') {
+            throw new BadRequestException("Only group part can have group question");
         }
         const questionGroup = await this.questionGroupRepository.create({
             partId: body.partId,
