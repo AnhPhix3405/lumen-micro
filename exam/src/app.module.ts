@@ -7,9 +7,11 @@ import { QuestionsModule } from './questions/questions.module';
 import { PartsModule } from './parts/parts.module';
 import { QuestionGroupModule } from './question_groups/question_groups.module';
 import { SubmitsModule } from './submits/submits.module';
+import { TopicsModule } from './topics/topics.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
+    TopicsModule,
     ExamModule,
     QuestionsModule,
     PartsModule,

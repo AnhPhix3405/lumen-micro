@@ -350,6 +350,22 @@ export class FinishSessionResponse {
     durationSeconds: number;
 }
 
+export class CreateTopicDto {
+    @ApiProperty({ example: "Listening" })
+    name: string;
+
+    @ApiPropertyOptional({ example: "Topics related to listening comprehension" })
+    description?: string;
+}
+
+export class UpdateTopicDto {
+    @ApiPropertyOptional({ example: "Reading" })
+    name?: string;
+
+    @ApiPropertyOptional({ example: "Topics related to reading comprehension" })
+    description?: string;
+}
+
 export class ApiResponse {
     @ApiProperty()
     message: string;

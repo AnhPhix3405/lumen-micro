@@ -1,10 +1,11 @@
-import { Controller, Param, Patch, Req, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Body, Controller, Delete, Param, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "./guards/jwt_auth.guard";
 import { AdminGuard } from "./guards/admin.guard";
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { TokenPayload } from "./interfaces/payload";
+import { CreateTopicDto, UpdateTopicDto } from "./dto/exam.dto";
 
 @ApiBearerAuth("JWT")
 @ApiTags("Admin")
@@ -43,6 +44,39 @@ export class AdminExamController {
                 "x-account-id": req.payload.payload.accountId,
             },
         });
+        return (await result).data;
+    }
+
+    // ── Topics ────────────────────────────────────────────────────────
+
+    @Post("topics")
+    // @UseGuards(JwtAuthGuard, AdminGuard)
+    @ApiOperation({ summary: "Create a topic" })
+    @ApiBody({ type: CreateTopicDto })
+    @ApiResponse({ status: 201, description: "Topic created" })
+    async createTopic(@Body() body: CreateTopicDto) {
+        const result = axios.post(`${this.examUrl}/topics`, body);
+        return (await result).data;
+    }
+
+    @Patch("topics/:id")
+    // @UseGuards(JwtAuthGuard, AdminGuard)
+    @ApiOperation({ summary: "Update a topic" })
+    @ApiBody({ type: UpdateTopicDto })
+    @ApiParam({ name: "id", description: "Topic UUID" })
+    @ApiResponse({ status: 200, description: "Topic updated" })
+    async updateTopic(@Param("id") id: string, @Body() body: UpdateTopicDto) {
+        const result = axios.patch(`${this.examUrl}/topics/${id}`, body);
+        return (await result).data;
+    }
+
+    @Delete("topics/:id")
+    // @UseGuards(JwtAuthGuard, AdminGuard)
+    @ApiOperation({ summary: "Delete a topic" })
+    @ApiParam({ name: "id", description: "Topic UUID" })
+    @ApiResponse({ status: 200, description: "Topic deleted" })
+    async deleteTopic(@Param("id") id: string) {
+        const result = axios.delete(`${this.examUrl}/topics/${id}`);
         return (await result).data;
     }
 }
