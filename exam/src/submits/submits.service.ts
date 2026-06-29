@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Submit } from 'src/entities/submits.entity';
@@ -226,9 +227,16 @@ export class SubmitsService {
 
     async findUserSessions(payload: TokenPayload) {
         return await this.submitRepository.find({
-            where: { userId: payload.userId },
+            where: { userId: payload.userId, status: 'completed' },
             relations: { exam: true },
             order: { createdAt: "DESC" },
+        });
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    async deleteInProgressSessions() {
+        await this.submitRepository.delete({
+            status: 'in_progress',
         });
     }
 }

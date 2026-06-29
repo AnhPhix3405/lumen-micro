@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ExamModule } from './exams/exams.module';
 import { QuestionsModule } from './questions/questions.module';
@@ -8,6 +9,7 @@ import { QuestionGroupModule } from './question_groups/question_groups.module';
 import { SubmitsModule } from './submits/submits.module';
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ExamModule,
     QuestionsModule,
     PartsModule,
