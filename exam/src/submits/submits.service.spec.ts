@@ -29,7 +29,7 @@ describe('SubmitsService', () => {
         SubmitsService,
         {
           provide: getRepositoryToken(Submit),
-          useValue: { create: jest.fn(), save: jest.fn(), findOne: jest.fn() },
+          useValue: { create: jest.fn(), save: jest.fn(), findOne: jest.fn(), delete: jest.fn() },
         },
         {
           provide: getRepositoryToken(Exam),
@@ -170,6 +170,28 @@ describe('SubmitsService', () => {
       await expect(
         service.createSession({ examId, ...payload }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  // ------------------------------------------------------------------ //
+  //  deleteInProgressSessions (cron)
+  // ------------------------------------------------------------------ //
+
+  describe('deleteInProgressSessions', () => {
+    it('deletes all sessions with status in_progress', async () => {
+      submitRepo.delete.mockResolvedValue({ affected: 5, raw: [] });
+
+      await service.deleteInProgressSessions();
+
+      expect(submitRepo.delete).toHaveBeenCalledWith({ status: 'in_progress' });
+    });
+
+    it('succeeds when no in_progress sessions exist', async () => {
+      submitRepo.delete.mockResolvedValue({ affected: 0, raw: [] });
+
+      await expect(service.deleteInProgressSessions()).resolves.not.toThrow();
+
+      expect(submitRepo.delete).toHaveBeenCalledWith({ status: 'in_progress' });
     });
   });
 
