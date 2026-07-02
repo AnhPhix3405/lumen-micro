@@ -364,6 +364,29 @@ export class FinishSessionResponse {
     durationSeconds: number;
 }
 
+export class TopicAnalysisEntry {
+    @ApiProperty()
+    topicId: string;
+
+    @ApiProperty()
+    topicName: string;
+
+    @ApiProperty({ example: 5 })
+    correct: number;
+
+    @ApiProperty({ example: 2 })
+    incorrect: number;
+
+    @ApiProperty({ example: 1 })
+    skipped: number;
+
+    @ApiProperty({ example: 0.625 })
+    accuracy: number;
+
+    @ApiProperty({ example: ["uuid-1", "uuid-2"] })
+    questionIds: string[];
+}
+
 export class CreateTopicDto {
     @ApiProperty({ example: "Listening" })
     name: string;

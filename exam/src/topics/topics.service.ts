@@ -8,7 +8,7 @@ import { CreateTopicDto, UpdateTopicDto } from 'src/dto/topic_module.dto';
 export class TopicsService {
     constructor(
         @InjectRepository(Topic) private readonly topicRepository: Repository<Topic>,
-    ) {}
+    ) { }
 
     async create(params: CreateTopicDto) {
         const topic = this.topicRepository.create({
@@ -18,10 +18,21 @@ export class TopicsService {
         return await this.topicRepository.save(topic);
     }
 
-    async findAll() {
-        return await this.topicRepository.find({
+    async findAll(page: number = 1, limit: number = 20) {
+        limit = limit > 20 ? 20 : limit;
+        const skip = (page - 1) * limit;
+        const [data, total] = await this.topicRepository.findAndCount({
             order: { name: 'ASC' },
+            skip,
+            take: limit,
         });
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
     }
 
     async findOne(id: string) {

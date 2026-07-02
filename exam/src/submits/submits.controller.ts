@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Query, Req } from '@nestjs/common';
 import { SubmitsService } from './submits.service';
 import { CreateSubmitDto, FinishSessionDto, SubmitAnswersDto } from 'src/dto/submit_module.dto';
 import type { BodyTokenPayload, TokenPayload } from 'src/interfaces/payload';
@@ -52,5 +52,15 @@ export class SubmitsController {
     ) {
         const data = await this.submitsService.findSessionById(sessionId, payloadFromHeaders(req));
         return { data, message: "Session fetched successfully", status: HttpStatus.OK };
+    }
+
+    @Get(':sessionId/topic-analysis')
+    async topicAnalysis(
+        @Param('sessionId') sessionId: string,
+        @Query('partId') partId: string | undefined,
+        @Req() req: Request,
+    ) {
+        const data = await this.submitsService.getTopicAnalysis(sessionId, payloadFromHeaders(req), partId);
+        return { data, message: "Topic analysis fetched successfully", status: HttpStatus.OK };
     }
 }

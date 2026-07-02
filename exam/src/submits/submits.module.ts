@@ -7,9 +7,11 @@ import { Exam } from 'src/entities/exams.entity';
 import { UserAnswer } from 'src/entities/user-answers.entity';
 import { Part } from 'src/entities/parts.entity';
 import { Question } from 'src/entities/questions.entity';
+import { QuestionTopic } from 'src/entities/question-topic.entity';
+import { Topic } from 'src/entities/topic.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Submit, Exam, Part, Question, UserAnswer])],
+    imports: [TypeOrmModule.forFeature([Submit, Exam, Part, Question, UserAnswer, QuestionTopic, Topic])],
     controllers: [SubmitsController],
     providers: [SubmitsService],
 })

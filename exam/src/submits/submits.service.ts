@@ -7,6 +7,8 @@ import { Exam } from 'src/entities/exams.entity';
 import { UserAnswer } from 'src/entities/user-answers.entity';
 import { Part } from 'src/entities/parts.entity';
 import { Question } from 'src/entities/questions.entity';
+import { QuestionTopic } from 'src/entities/question-topic.entity';
+import { Topic } from 'src/entities/topic.entity';
 import { BodyTokenPayload, TokenPayload } from 'src/interfaces/payload';
 import { AnswerItemDto } from 'src/dto/submit_module.dto';
 
@@ -18,6 +20,8 @@ export class SubmitsService {
         @InjectRepository(UserAnswer) private readonly userAnswerRepository: Repository<UserAnswer>,
         @InjectRepository(Part) private readonly partRepository: Repository<Part>,
         @InjectRepository(Question) private readonly questionRepository: Repository<Question>,
+        @InjectRepository(QuestionTopic) private readonly questionTopicRepository: Repository<QuestionTopic>,
+        @InjectRepository(Topic) private readonly topicRepository: Repository<Topic>,
     ) { }
 
     async createSession(params: { examId: string; timeLimit?: number } & BodyTokenPayload) {
@@ -154,7 +158,7 @@ export class SubmitsService {
     async finishSession(params: { sessionId: string } & BodyTokenPayload) {
         const submit = await this.submitRepository.findOne({
             where: { id: params.sessionId },
-            relations: { userAnswers: { question: true } },
+            relations: { exam: true, userAnswers: { question: true } },
         });
 
         if (!submit) {
@@ -169,9 +173,11 @@ export class SubmitsService {
             throw new BadRequestException('Submit is not in progress');
         }
 
+        const examQuestionCount = await this.countExamQuestions(submit.exam.id);
+
         let totalCorrect = 0;
         let totalScore = 0;
-        const totalQuestions = submit.userAnswers.length;
+        const answeredCount = submit.userAnswers.length;
 
         for (const answer of submit.userAnswers) {
             const isCorrect = JSON.stringify(answer.selectedOption) === JSON.stringify(answer.question.correctOption);
@@ -186,13 +192,15 @@ export class SubmitsService {
             totalScore += score;
         }
 
-        const correctRatio = totalQuestions > 0 ? totalCorrect / totalQuestions : 0;
+        const totalIncorrect = answeredCount - totalCorrect;
+        const totalSkipped = examQuestionCount - answeredCount;
+        const correctRatio = examQuestionCount > 0 ? totalCorrect / examQuestionCount : 0;
         const durationSeconds = Math.floor((Date.now() - submit.startedAt.getTime()) / 1000);
 
         submit.status = 'completed';
         submit.submittedAt = new Date();
         submit.totalCorrect = totalCorrect;
-        submit.totalQuestions = totalQuestions;
+        submit.totalQuestions = examQuestionCount;
         submit.totalScore = totalScore;
         submit.correctRatio = correctRatio;
         submit.durationSeconds = durationSeconds;
@@ -205,6 +213,8 @@ export class SubmitsService {
             status: submit.status,
             totalScore: submit.totalScore,
             totalCorrect: submit.totalCorrect,
+            totalIncorrect,
+            totalSkipped,
             totalQuestions: submit.totalQuestions,
             correctRatio: submit.correctRatio,
             durationSeconds: submit.durationSeconds,
@@ -222,7 +232,23 @@ export class SubmitsService {
         if (!submit) {
             throw new NotFoundException('Session not found');
         }
-        return submit;
+
+        const answeredCount = submit.userAnswers?.length || 0;
+        const correctCount = submit.totalCorrect;
+        const totalQuestions = submit.totalQuestions || answeredCount;
+        const incorrectCount = answeredCount - correctCount;
+        const skippedCount = totalQuestions - answeredCount;
+        const accuracy = totalQuestions > 0 ? correctCount / totalQuestions : 0;
+
+        return {
+            ...submit,
+            result: `${correctCount}/${totalQuestions}`,
+            accuracy,
+            completionTime: submit.durationSeconds,
+            correctCount,
+            incorrectCount,
+            skippedCount,
+        };
     }
 
     async findUserSessions(payload: TokenPayload) {
@@ -231,6 +257,119 @@ export class SubmitsService {
             relations: { exam: true },
             order: { createdAt: "DESC" },
         });
+    }
+
+    private async countExamQuestions(examId: string): Promise<number> {
+        const parts = await this.partRepository.find({
+            where: { exam: { id: examId } },
+        });
+        const partIds = parts.map(p => p.id);
+        if (partIds.length === 0) return 0;
+
+        const [standaloneCount, groupCount] = await Promise.all([
+            this.questionRepository.count({ where: { partId: In(partIds) } }),
+            this.questionRepository.count({
+                where: { questionGroup: { part: { id: In(partIds) } } },
+            }),
+        ]);
+        return standaloneCount + groupCount;
+    }
+
+    async getTopicAnalysis(sessionId: string, payload: TokenPayload, partId?: string) {
+        const submit = await this.submitRepository.findOne({
+            where: { id: sessionId, userId: payload.userId },
+            relations: {
+                userAnswers: {
+                    question: {
+                        questionGroup: true,
+                        questionTopics: { topic: true },
+                    },
+                },
+            },
+        });
+        if (!submit) {
+            throw new NotFoundException('Session not found');
+        }
+
+        let answers = submit.userAnswers || [];
+        if (partId) {
+            answers = answers.filter(a => {
+                const q = a.question;
+                return q.partId === partId || q.questionGroup?.partId === partId;
+            });
+        }
+
+        type TopicEntry = {
+            topicId: string | null;
+            topicName: string;
+            correct: number;
+            incorrect: number;
+            skipped: number;
+            accuracy: number;
+            questionIds: string[];
+        };
+
+        const topicMap = new Map<string, TopicEntry>();
+
+        const untagged: TopicEntry = {
+            topicId: null,
+            topicName: 'Untagged',
+            correct: 0,
+            incorrect: 0,
+            skipped: 0,
+            accuracy: 0,
+            questionIds: [],
+        };
+
+        for (const answer of answers) {
+            const topics = answer.question.questionTopics || [];
+            if (topics.length === 0) {
+                untagged.questionIds.push(answer.question.id);
+                if (answer.isCorrect === true) untagged.correct++;
+                else if (answer.isCorrect === false) untagged.incorrect++;
+                else untagged.skipped++;
+                continue;
+            }
+
+            for (const qt of topics) {
+                const topic = qt.topic;
+                if (!topicMap.has(topic.id)) {
+                    topicMap.set(topic.id, {
+                        topicId: topic.id,
+                        topicName: topic.name,
+                        correct: 0,
+                        incorrect: 0,
+                        skipped: 0,
+                        accuracy: 0,
+                        questionIds: [],
+                    });
+                }
+                const entry = topicMap.get(topic.id)!;
+                entry.questionIds.push(answer.question.id);
+                if (answer.isCorrect === true) entry.correct++;
+                else if (answer.isCorrect === false) entry.incorrect++;
+                else entry.skipped++;
+            }
+        }
+
+        const result = [...topicMap.values()];
+
+        if (untagged.questionIds.length > 0 && !partId) {
+            const total = untagged.correct + untagged.incorrect + untagged.skipped;
+            untagged.accuracy = total > 0 ? untagged.correct / total : 0;
+            result.push(untagged);
+        }
+
+        for (const entry of result) {
+            const total = entry.correct + entry.incorrect + entry.skipped;
+            entry.accuracy = total > 0 ? entry.correct / total : 0;
+        }
+
+        if (!partId) {
+            result.sort((a, b) => a.topicName.localeCompare(b.topicName));
+        }
+
+        return result;
     }
 
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)

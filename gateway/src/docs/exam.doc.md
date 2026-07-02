@@ -863,7 +863,7 @@ Starts a new exam session (attempt).
 
 ## Get Session
 
-Returns session details with exam info and user answers.
+Returns session details with exam info and user answers, plus computed summary fields.
 
 **Endpoint:** `GET /exam/session/:sessionId`
 
@@ -874,9 +874,20 @@ Returns session details with exam info and user answers.
   "data": {
     "id": "uuid",
     "userId": "uuid",
-    "status": "in_progress",
+    "status": "completed",
     "startedAt": "2026-06-12T12:00:00.000Z",
     "timeLimitSeconds": 1800,
+    "durationSeconds": 1245,
+    "totalCorrect": 7,
+    "totalQuestions": 10,
+    "totalScore": 7,
+    "correctRatio": 0.7,
+    "result": "7/10",
+    "accuracy": 0.7,
+    "completionTime": 1245,
+    "correctCount": 7,
+    "incorrectCount": 2,
+    "skippedCount": 1,
     "exam": {
       "id": "uuid",
       "name": "IELTS Listening Test 1",
@@ -993,11 +1004,125 @@ Finalizes an in-progress session: calculates scores, marks it completed, and ret
     "status": "completed",
     "totalScore": 7,
     "totalCorrect": 7,
+    "totalIncorrect": 2,
+    "totalSkipped": 1,
     "totalQuestions": 10,
     "correctRatio": 0.7,
     "durationSeconds": 1245
   },
   "message": "Session finished successfully",
+  "status": 200
+}
+```
+
+---
+
+## Topic Analysis
+
+Returns per-topic breakdown of answers for a session. Optionally filter by part.
+
+**Endpoint:** `GET /exam/session/:sessionId/topic-analysis`
+
+**Query Parameters:**
+
+| Param    | Type   | Required | Description                    |
+|----------|--------|----------|--------------------------------|
+| `partId` | string | No       | Filter results to a specific part |
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    {
+      "topicId": "uuid",
+      "topicName": "Listening Comprehension",
+      "correct": 5,
+      "incorrect": 1,
+      "skipped": 0,
+      "accuracy": 0.833,
+      "questionIds": ["uuid-1", "uuid-2", "uuid-3"]
+    },
+    {
+      "topicId": null,
+      "topicName": "Untagged",
+      "correct": 2,
+      "incorrect": 1,
+      "skipped": 1,
+      "accuracy": 0.5,
+      "questionIds": ["uuid-4", "uuid-5"]
+    }
+  ],
+  "message": "Topic analysis fetched successfully",
+  "status": 200
+}
+```
+
+When no `partId` is specified, results are sorted alphabetically A→Z by topic name. An `"Untagged"` entry is included for questions without topics.
+
+---
+
+## Get All Topics
+
+Returns a paginated list of all topics.
+
+**Endpoint:** `GET /exam/topics`
+
+**Query Parameters:**
+
+| Param   | Type   | Required | Default | Description          |
+|---------|--------|----------|---------|----------------------|
+| `page`  | number | No       | 1       | Page number          |
+| `limit` | number | No       | 20      | Items per page       |
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "data": [
+      { "id": "uuid", "name": "Listening Comprehension", "description": "Topics related to listening", "createdAt": "..." },
+      { "id": "uuid", "name": "Reading Comprehension", "description": null, "createdAt": "..." }
+    ],
+    "total": 25,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 2
+  },
+  "message": "Topics fetched successfully",
+  "status": 200
+}
+```
+
+---
+
+## Replace Question Topics
+
+Replaces all topic associations for a question. Existing topics are removed and replaced with the provided list.
+
+**Endpoint:** `PATCH /exam/question/:questionId/topics`
+
+**Request Body:**
+
+```json
+{
+  "topicIds": ["uuid-1", "uuid-2"]
+}
+```
+
+**Response `200`:**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "content": "What is the speaker's main concern?",
+    "questionTopics": [
+      { "topicId": "uuid-1", "topic": { "id": "uuid-1", "name": "Listening Comprehension" } },
+      { "topicId": "uuid-2", "topic": { "id": "uuid-2", "name": "Vocabulary" } }
+    ]
+  },
+  "message": "Question topics updated successfully",
   "status": 200
 }
 ```
@@ -1030,9 +1155,12 @@ Finalizes an in-progress session: calculates scores, marks it completed, and ret
 | `/exam/question/:questionId`                          | PATCH  | Update question          |
 | `/exam/question/:questionId/upload-audio`             | PATCH  | `multipart/form-data`    |
 | `/exam/question/:questionId/upload-image`             | PATCH  | `multipart/form-data`    |
+| `/exam/question/:questionId/topics`                   | PATCH  | Replace question topics  |
 | `/exam/part/:partId/question`                         | POST   | Create standalone question|
 | `/exam/create-session/:examId`                        | POST   | Start session            |
-| `/exam/session/:sessionId`                            | GET    | Session details          |
+| `/exam/session/:sessionId`                            | GET    | Session details (enriched)|
+| `/exam/session/:sessionId/topic-analysis`             | GET    | Topic analysis by session |
 | `/exam/sessions/my`                                   | GET    | User's sessions          |
 | `/exam/submit-answers/:sessionId`                     | POST   | Submit answers           |
 | `/exam/finish-session/:sessionId`                     | POST   | Finish & score           |
+| `/exam/topics`                                         | GET    | Paginated topics list    |

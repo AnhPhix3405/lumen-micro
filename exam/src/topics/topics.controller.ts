@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Query } from '@nestjs/common';
 import { TopicsService } from './topics.service';
 import { CreateTopicDto, UpdateTopicDto } from 'src/dto/topic_module.dto';
 
@@ -13,8 +13,11 @@ export class TopicsController {
     }
 
     @Get()
-    async findAll() {
-        const data = await this.topicsService.findAll();
+    async findAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '20',
+    ) {
+        const data = await this.topicsService.findAll(Number(page), Number(limit));
         return { data, message: 'Topics fetched successfully', status: HttpStatus.OK };
     }
 

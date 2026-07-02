@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "./guards/jwt_auth.guard";
@@ -24,6 +24,7 @@ import {
     SessionResponse,
     SubmitAnswersResponse,
     FinishSessionResponse,
+    TopicAnalysisEntry,
     ApiResponse as ApiSuccessResponse,
 } from "./dto/exam.dto";
 
@@ -309,6 +310,39 @@ export class ExamController {
                 "x-account-id": req.payload.payload.accountId,
             },
         });
+        return (await result).data;
+    }
+
+    @Get("session/:sessionId/topic-analysis")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get topic analysis for a session (optional ?partId filter)" })
+    @ApiParam({ name: "sessionId", description: "Session UUID" })
+    @ApiResponse({ status: 200, description: "Topic analysis", type: [TopicAnalysisEntry] })
+    async topicAnalysis(
+        @Param("sessionId") sessionId: string,
+        @Query("partId") partId: string | undefined,
+        @Req() req: Request & { payload: TokenPayload }
+    ) {
+        const url = partId
+            ? `${this.examUrl}/session/${sessionId}/topic-analysis?partId=${partId}`
+            : `${this.examUrl}/session/${sessionId}/topic-analysis`;
+        const result = axios.get(url, {
+            headers: {
+                "x-user-id": req.payload.payload.userId,
+                "x-account-id": req.payload.payload.accountId,
+            },
+        });
+        return (await result).data;
+    }
+
+    @Get("topics")
+    @ApiOperation({ summary: "Get all topics (paginated)" })
+    @ApiResponse({ status: 200, description: "Paginated list of topics" })
+    async findAllTopics(
+        @Query("page") page: string = "1",
+        @Query("limit") limit: string = "20",
+    ) {
+        const result = axios.get(`${this.examUrl}/topics?page=${page}&limit=${limit}`);
         return (await result).data;
     }
 }
