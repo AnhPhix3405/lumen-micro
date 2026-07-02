@@ -107,6 +107,9 @@ export class CreateQuestionInGroupDto {
 
     @ApiProperty({ example: 1 })
     questionOrder: number;
+
+    @ApiPropertyOptional({ example: ["uuid-1", "uuid-2"], description: "Topic UUIDs to link" })
+    topicIds?: string[];
 }
 
 export class CreateSeparateQuestionDto {
@@ -133,6 +136,9 @@ export class CreateSeparateQuestionDto {
 
     @ApiProperty({ example: 1 })
     questionOrder: number;
+
+    @ApiPropertyOptional({ example: ["uuid-1", "uuid-2"], description: "Topic UUIDs to link" })
+    topicIds?: string[];
 }
 
 export class UpdateQuestionDto {
@@ -162,6 +168,14 @@ export class UpdateQuestionDto {
 
     @ApiPropertyOptional({ example: 1 })
     questionOrder?: number;
+
+    @ApiPropertyOptional({ example: ["uuid-1", "uuid-2"], description: "Topic UUIDs to link" })
+    topicIds?: string[];
+}
+
+export class UpdateQuestionTopicsDto {
+    @ApiProperty({ example: ["uuid-1", "uuid-2"], description: "Array of topic UUIDs to replace" })
+    topicIds: string[];
 }
 
 export class CreateSubmitDto {

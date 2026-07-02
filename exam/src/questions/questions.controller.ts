@@ -26,6 +26,15 @@ export class QuestionsController {
         return { data, message: "Question updated successfully", status: HttpStatus.OK };
     }
 
+    @Patch("/:questionId/topics")
+    async updateQuestionTopics(
+        @Body() body: { topicIds: string[] } & BodyTokenPayload,
+        @Param("questionId") questionId: string,
+    ) {
+        const data = await this.questionsService.updateTopics(questionId, body.topicIds, body);
+        return { data, message: "Question topics updated successfully", status: HttpStatus.OK };
+    }
+
     @Patch("/:questionId/upload-audio")
     async uploadQuestionAudio(
         @Req() req: Request,

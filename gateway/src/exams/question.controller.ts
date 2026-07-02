@@ -6,7 +6,7 @@ import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { TokenPayload } from "../interfaces/payload";
 import FormData from "form-data";
-import { UpdateQuestionDto } from "../dto/exam.dto";
+import { UpdateQuestionDto, UpdateQuestionTopicsDto } from "../dto/exam.dto";
 
 @ApiBearerAuth("JWT")
 @ApiTags("Exam Question")
@@ -127,6 +127,22 @@ export class QuestionController {
                 },
             }
         );
+        return (await result).data;
+    }
+
+    @Patch(":questionId/topics")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Replace topics on a question" })
+    @ApiParam({ name: "questionId", description: "Question UUID" })
+    @ApiBody({ type: UpdateQuestionTopicsDto })
+    @ApiResponse({ status: 200, description: "Topics updated" })
+    async updateQuestionTopics(
+        @Body() body: UpdateQuestionTopicsDto,
+        @Param("questionId") questionId: string,
+        @Req() req: Request & { payload: TokenPayload }
+    ) {
+        Object.assign(body, req.payload);
+        const result = axios.patch(`${this.examUrl}/question/${questionId}/topics`, body);
         return (await result).data;
     }
 }

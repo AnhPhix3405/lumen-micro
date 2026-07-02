@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreateQuestionInGroupDto {
     @IsString()
@@ -34,6 +34,11 @@ export class CreateQuestionInGroupDto {
     @IsNumber()
     @IsNotEmpty()
     questionOrder: number;
+
+    @IsArray()
+    @IsUUID("4", { each: true })
+    @IsOptional()
+    topicIds?: string[];
 }
 
 export class CreateQuestionDto {
@@ -71,6 +76,11 @@ export class CreateQuestionDto {
     @IsNumber()
     @IsNotEmpty()
     questionOrder: number;
+
+    @IsArray()
+    @IsUUID("4", { each: true })
+    @IsOptional()
+    topicIds?: string[];
 }
 
 export class UpdateQuestionDto {
@@ -107,4 +117,9 @@ export class UpdateQuestionDto {
     @IsNumber()
     @IsOptional()
     questionOrder?: number;
+
+    @IsArray()
+    @IsUUID("4", { each: true })
+    @IsOptional()
+    topicIds?: string[];
 }

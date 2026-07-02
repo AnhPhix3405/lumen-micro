@@ -5,10 +5,14 @@ import { Question } from "src/entities/questions.entity";
 import { QuestionGroup } from "src/entities/question-groups.entity";
 import { Part } from "src/entities/parts.entity";
 import { Exam } from "src/entities/exams.entity";
+import { QuestionTopic } from "src/entities/question-topic.entity";
 import { CreateQuestionDto, CreateQuestionInGroupDto, UpdateQuestionDto } from "src/dto/question_module.dto";
 import type { BodyTokenPayload } from "src/interfaces/payload";
 import { UploadService } from "src/services/upload.service";
 import type { Request } from "express";
+
+const TOPICS_RELATION = { questionTopics: { topic: true } };
+
 @Injectable()
 export class QuestionsService {
     constructor(
@@ -16,8 +20,17 @@ export class QuestionsService {
         @InjectRepository(QuestionGroup) private readonly questionGroupRepository: Repository<QuestionGroup>,
         @InjectRepository(Part) private readonly partRepository: Repository<Part>,
         @InjectRepository(Exam) private readonly examRepository: Repository<Exam>,
+        @InjectRepository(QuestionTopic) private readonly questionTopicRepository: Repository<QuestionTopic>,
         private readonly uploadService: UploadService,
     ) { }
+
+    private async saveTopicJunctions(questionId: string, topicIds: string[]) {
+        if (!topicIds || topicIds.length === 0) return;
+        const junctions = topicIds.map(topicId =>
+            this.questionTopicRepository.create({ questionId, topicId })
+        );
+        await this.questionTopicRepository.save(junctions);
+    }
 
     async createInGroup(params: CreateQuestionInGroupDto & BodyTokenPayload) {
         const questionGroup = await this.questionGroupRepository.findOne({
@@ -49,7 +62,16 @@ export class QuestionsService {
             score: params.score ?? 1,
             questionOrder: params.questionOrder,
         });
-        return await this.questionRepository.save(question);
+        const saved = await this.questionRepository.save(question);
+
+        if (params.topicIds?.length) {
+            await this.saveTopicJunctions(saved.id, params.topicIds);
+        }
+
+        return await this.questionRepository.findOne({
+            where: { id: saved.id },
+            relations: TOPICS_RELATION,
+        });
     }
 
     async create(params: CreateQuestionDto & BodyTokenPayload) {
@@ -78,7 +100,16 @@ export class QuestionsService {
             score: params.score ?? 1,
             questionOrder: params.questionOrder,
         });
-        return await this.questionRepository.save(question);
+        const saved = await this.questionRepository.save(question);
+
+        if (params.topicIds?.length) {
+            await this.saveTopicJunctions(saved.id, params.topicIds);
+        }
+
+        return await this.questionRepository.findOne({
+            where: { id: saved.id },
+            relations: TOPICS_RELATION,
+        });
     }
 
     async update(params: UpdateQuestionDto & BodyTokenPayload) {
@@ -127,8 +158,49 @@ export class QuestionsService {
                 .execute();
         }
 
+        if (params.topicIds !== undefined) {
+            await this.questionTopicRepository.delete({ questionId: params.questionId });
+            await this.saveTopicJunctions(params.questionId, params.topicIds);
+        }
+
         return await this.questionRepository.findOne({
             where: { id: params.questionId },
+            relations: TOPICS_RELATION,
+        });
+    }
+
+    async updateTopics(questionId: string, topicIds: string[], payload: BodyTokenPayload) {
+        const question = await this.questionRepository.findOne({
+            where: { id: questionId },
+            relations: { questionGroup: { part: { exam: true } } },
+        });
+        if (!question) {
+            throw new NotFoundException("Question not found");
+        }
+
+        if (question.questionGroup) {
+            if (question.questionGroup.part.exam.userId !== payload.payload.userId) {
+                throw new UnauthorizedException("Unauthorized");
+            }
+        }
+        if (question.partId) {
+            const part = await this.partRepository.findOne({
+                where: { id: question.partId },
+                relations: { exam: true },
+            });
+            if (part && part.exam.userId !== payload.payload.userId) {
+                throw new UnauthorizedException("Unauthorized");
+            }
+        }
+
+        await this.questionTopicRepository.delete({ questionId });
+        if (topicIds.length > 0) {
+            await this.saveTopicJunctions(questionId, topicIds);
+        }
+
+        return await this.questionRepository.findOne({
+            where: { id: questionId },
+            relations: TOPICS_RELATION,
         });
     }
 
@@ -169,7 +241,7 @@ export class QuestionsService {
     async findOneById(id: string) {
         const question = await this.questionRepository.findOne({
             where: { id },
-            relations: { questionGroup: true },
+            relations: { questionGroup: true, ...TOPICS_RELATION },
         });
         if (!question) {
             throw new NotFoundException("Question not found");
@@ -180,6 +252,7 @@ export class QuestionsService {
     async findByGroupId(questionGroupId: string) {
         return await this.questionRepository.find({
             where: { questionGroup: { id: questionGroupId } },
+            relations: TOPICS_RELATION,
             order: { questionOrder: "ASC" },
         });
     }
@@ -187,6 +260,7 @@ export class QuestionsService {
     async findByPartId(partId: string) {
         return await this.questionRepository.find({
             where: { partId },
+            relations: TOPICS_RELATION,
             order: { questionOrder: "ASC" },
         });
     }

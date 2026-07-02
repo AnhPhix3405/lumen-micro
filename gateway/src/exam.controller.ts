@@ -240,7 +240,7 @@ export class ExamController {
     @ApiOperation({ summary: "Create a standalone question in a part" })
     @ApiParam({ name: "partId", description: "Part UUID" })
     @ApiBody({ type: CreateSeparateQuestionDto })
-    @ApiResponse({ status: 201, description: "Question created" })
+    @ApiResponse({ status: 201, description: "Question created", type: QuestionResponse })
     async createQuestion(@Body() body: CreateSeparateQuestionDto, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
         Object.assign(body, req.payload);
         const result = axios.post(`${this.examUrl}/question/part/${partId}`, body);

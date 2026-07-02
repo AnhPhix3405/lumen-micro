@@ -6,10 +6,11 @@ import { Question } from "src/entities/questions.entity";
 import { QuestionGroup } from "src/entities/question-groups.entity";
 import { Part } from "src/entities/parts.entity";
 import { Exam } from "src/entities/exams.entity";
+import { QuestionTopic } from "src/entities/question-topic.entity";
 import { UploadService } from "src/services/upload.service";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Question, QuestionGroup, Part, Exam])],
+    imports: [TypeOrmModule.forFeature([Question, QuestionGroup, Part, Exam, QuestionTopic])],
     controllers: [QuestionsController],
     providers: [QuestionsService, UploadService]
 })
