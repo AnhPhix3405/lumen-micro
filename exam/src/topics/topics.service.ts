@@ -2,12 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Topic } from 'src/entities/topic.entity';
+import { QuestionTopic } from 'src/entities/question-topic.entity';
 import { CreateTopicDto, UpdateTopicDto } from 'src/dto/topic_module.dto';
 
 @Injectable()
 export class TopicsService {
     constructor(
         @InjectRepository(Topic) private readonly topicRepository: Repository<Topic>,
+        @InjectRepository(QuestionTopic) private readonly questionTopicRepository: Repository<QuestionTopic>,
     ) { }
 
     async create(params: CreateTopicDto) {
@@ -53,5 +55,13 @@ export class TopicsService {
     async delete(id: string) {
         const topic = await this.findOne(id);
         return await this.topicRepository.delete(topic.id);
+    }
+
+    async findByQuestionId(questionId: string) {
+        const questionTopics = await this.questionTopicRepository.find({
+            where: { questionId },
+            relations: { topic: true },
+        });
+        return questionTopics.map(qt => qt.topic);
     }
 }

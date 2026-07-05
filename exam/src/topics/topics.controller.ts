@@ -27,6 +27,12 @@ export class TopicsController {
         return { data, message: 'Topic fetched successfully', status: HttpStatus.OK };
     }
 
+    @Get('question/:questionId')
+    async findByQuestion(@Param('questionId') questionId: string) {
+        const data = await this.topicsService.findByQuestionId(questionId);
+        return { data, message: 'Question topics fetched successfully', status: HttpStatus.OK };
+    }
+
     @Patch(':id')
     async update(@Param('id') id: string, @Body() body: UpdateTopicDto) {
         const data = await this.topicsService.update(id, body);
