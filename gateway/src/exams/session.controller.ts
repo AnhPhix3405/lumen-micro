@@ -90,6 +90,21 @@ export class SessionController {
         return (await result).data;
     }
 
+    @Get("session/:sessionId/questions")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Get all questions of a session with correctness" })
+    @ApiParam({ name: "sessionId", description: "Session UUID" })
+    @ApiResponse({ status: 200, description: "List of questions with correct option and user correctness" })
+    async findSessionQuestions(@Param("sessionId") sessionId: string, @Req() req: Request & { payload: TokenPayload }) {
+        const result = axios.get(`${this.examUrl}/session/${sessionId}/questions`, {
+            headers: {
+                "x-user-id": req.payload.payload.userId,
+                "x-account-id": req.payload.payload.accountId,
+            },
+        });
+        return (await result).data;
+    }
+
     @Get("session/:sessionId/topic-analysis")
     @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: "Get topic analysis for a session (optional ?partId filter)" })

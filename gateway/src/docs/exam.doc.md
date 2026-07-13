@@ -1167,6 +1167,30 @@ Returns all topics associated with a question.
 
 ---
 
+## Get Session Questions
+
+Returns all questions across all parts of the session's exam, with the user's correctness status.
+
+**Endpoint:** `GET /exam/session/:sessionId/questions`
+
+**Response `200`:**
+
+```json
+{
+  "data": [
+    { "id": "uuid", "order": 1, "correct_option": { "key": "B" }, "is_correct": true , "sequence" : 111},
+    { "id": "uuid", "order": 2, "correct_option": { "key": "D" }, "is_correct": false ,"sequence" : 112},
+    { "id": "uuid", "order": 3, "correct_option": { "key": "A" }, "is_correct": null, "sequence" : 113 }
+  ],
+  "message": "Session questions fetched successfully",
+  "status": 200
+}
+```
+
+`is_correct` is `true` (answered correctly), `false` (answered incorrectly), or `null` (not answered / skipped).
+
+---
+
 ## Summary
 
 | Endpoint                                               | Method | Notes                       | Controller         |
@@ -1193,6 +1217,7 @@ Returns all topics associated with a question.
 | `/exam/session/:sessionId`                             | GET    | Session details (enriched)  | SessionController  |
 | `/exam/sessions/my`                                    | GET    | User's sessions             | SessionController  |
 | `/exam/session/:sessionId/topic-analysis`              | GET    | Topic analysis by session   | SessionController  |
+| `/exam/session/:sessionId/questions`                   | GET    | Session questions + correctness | SessionController  |
 | `/exam/question/by-group/:questionGroupId`             | GET    | Questions in group          | QuestionController |
 | `/exam/question/by-part/:partId`                       | GET    | Standalone questions        | QuestionController |
 | `/exam/question/:id`                                   | GET    | Question by ID              | QuestionController |

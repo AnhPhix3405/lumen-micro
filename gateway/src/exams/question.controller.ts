@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../guards/jwt_auth.guard";
@@ -6,7 +6,7 @@ import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { TokenPayload } from "../interfaces/payload";
 import FormData from "form-data";
-import { UpdateQuestionDto, UpdateQuestionTopicsDto } from "../dto/exam.dto";
+import { CreateSeparateQuestionDto as CreateQuestionDto, UpdateQuestionDto, UpdateQuestionTopicsDto } from "../dto/exam.dto";
 
 @ApiBearerAuth("JWT")
 @ApiTags("Exam Question")
@@ -16,6 +16,19 @@ export class QuestionController {
 
     private get examUrl() {
         return this.config.get("EXAM_SERVICE_URL");
+    }
+
+    @Post("by-part/:partId")
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: "Create a standalone question in a part" })
+    @ApiParam({ name: "partId", description: "Part UUID" })
+    @ApiBody({ type: CreateQuestionDto })
+    @ApiResponse({ status: 201, description: "Question created" })
+    async createStandaloneQuestion(@Body() body: CreateQuestionDto, @Param("partId") partId: string, @Req() req: Request & { payload: TokenPayload }) {
+        Object.assign(body, req.payload);
+        Object.assign(body, { partId });
+        const result = axios.post(`${this.examUrl}/question/part/${partId}`, body);
+        return (await result).data;
     }
 
     @Get("by-group/:questionGroupId")

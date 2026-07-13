@@ -54,6 +54,15 @@ export class SubmitsController {
         return { data, message: "Session fetched successfully", status: HttpStatus.OK };
     }
 
+    @Get(':sessionId/questions')
+    async findSessionQuestions(
+        @Param('sessionId') sessionId: string,
+        @Req() req: Request,
+    ) {
+        const data = await this.submitsService.findSessionQuestions(sessionId, payloadFromHeaders(req));
+        return { data, message: "Session questions fetched successfully", status: HttpStatus.OK };
+    }
+
     @Get(':sessionId/topic-analysis')
     async topicAnalysis(
         @Param('sessionId') sessionId: string,

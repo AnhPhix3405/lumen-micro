@@ -50,6 +50,20 @@ export class QuestionsService {
             throw new Error("Unauthorized");
         }
 
+        const currentExamId = questionGroup.part.examId;
+
+        const latestQuestion = await this.questionRepository
+            .createQueryBuilder('q')
+            .select('q.sequence')
+            .leftJoin('q.questionGroup', 'qg')
+            .leftJoin('qg.part', 'p')
+            .leftJoin('q.part', 'p2')
+            .where('p.examId = :examId OR p2.examId = :examId', { examId: currentExamId })
+            .orderBy('q.sequence', 'DESC')
+            .getRawOne()
+
+        const nextSequence = latestQuestion ? latestQuestion.q_sequence + 1 : 1;
+
         const question = this.questionRepository.create({
             questionGroup: { id: params.questionGroupId },
             type: "group",
@@ -61,6 +75,7 @@ export class QuestionsService {
             correctOption: params.correctOption,
             score: params.score ?? 1,
             questionOrder: params.questionOrder,
+            sequence: nextSequence
         });
         const saved = await this.questionRepository.save(question);
 
@@ -88,6 +103,21 @@ export class QuestionsService {
         if (part.type !== "standalone") {
             throw new BadRequestException("Only standalone part can have standalone question");
         }
+
+        const currentExamId = part.examId;
+
+        const latestQuestion = await this.questionRepository
+            .createQueryBuilder('q')
+            .select('q.sequence')
+            .leftJoin('q.part', 'p')
+            .leftJoin('q.questionGroup', 'qg')
+            .leftJoin('qg.part', 'p2')
+            .where('p.examId = :examId OR p2.examId = :examId', { examId: currentExamId })
+            .orderBy('q.sequence', 'DESC')
+            .getRawOne()
+
+        const nextSequence = latestQuestion ? latestQuestion.q_sequence + 1 : 1;
+
         const question = this.questionRepository.create({
             partId: params.partId,
             type: "separate",
@@ -99,6 +129,7 @@ export class QuestionsService {
             correctOption: params.correctOption,
             score: params.score ?? 1,
             questionOrder: params.questionOrder,
+            sequence: nextSequence
         });
         const saved = await this.questionRepository.save(question);
 

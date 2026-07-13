@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn, OneToMany, Unique, }
     from 'typeorm'; import { QuestionGroup } from './question-groups.entity'; import { UserAnswer }
     from './user-answers.entity'; import { Part } from './parts.entity'; import { QuestionTopic }
-    from './question-topic.entity'; @Entity('questions') @Unique('uq_question_order', ['questionGroup', 'questionOrder'])
+    from './question-topic.entity'; @Entity('questions') 
 export class Question {
     @PrimaryGeneratedColumn('uuid') id: string; @Index('idx_questions_group_id')
     @ManyToOne(() => QuestionGroup, (questionGroup) => questionGroup.questions, { onDelete: 'CASCADE', })
@@ -18,6 +18,7 @@ export class Question {
     @Column({ name: 'correct_option', type: 'json', nullable: true }) correctOption: object;
     @Column({ type: 'int', default: 1 }) score: number;
     @Column({ name: 'question_order', type: 'int' }) questionOrder: number;
+    @Column({ name: 'sequence', type: 'int', nullable: true }) sequence: number;
     @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
     createdAt: Date; @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
     updatedAt: Date; @OneToMany(() => UserAnswer, (userAnswer) => userAnswer.question) userAnswers: UserAnswer[];

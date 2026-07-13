@@ -275,6 +275,62 @@ export class SubmitsService {
         return standaloneCount + groupCount;
     }
 
+    async findSessionQuestions(sessionId: string, payload: TokenPayload) {
+        const submit = await this.submitRepository.findOne({
+            where: { id: sessionId, userId: payload.userId },
+            relations: { exam: true },
+        });
+        if (!submit) {
+            throw new NotFoundException('Session not found');
+        }
+
+        const parts = await this.partRepository.find({
+            where: { exam: { id: submit.exam.id } },
+        });
+        const partIds = parts.map(p => p.id);
+        if (partIds.length === 0) return [];
+
+        const [standalone, groupQuestions] = await Promise.all([
+            this.questionRepository.find({
+                where: { partId: In(partIds) },
+                select: { id: true, questionOrder: true, correctOption: true, sequence: true },
+                order: { questionOrder: 'ASC' },
+            }),
+            this.questionRepository.find({
+                where: { questionGroup: { part: { id: In(partIds) } } },
+                select: { id: true, questionOrder: true, correctOption: true, sequence: true },
+                order: { questionOrder: 'ASC' },
+                relations: { questionGroup: true },
+            }),
+        ]);
+
+        const allQuestions = [...standalone, ...groupQuestions].sort(
+            (a, b) => a.sequence - b.sequence,
+        );
+
+        const userAnswers = await this.userAnswerRepository.find({
+            where: { submit: { id: sessionId } },
+            relations: { question: true },
+        });
+        const answerMap = new Map(userAnswers.map(ua => [ua.question.id, ua]));
+
+        return allQuestions.map(q => {
+            const answer = answerMap.get(q.id);
+            let isCorrect: boolean | null = null;
+            if (answer) {
+                isCorrect = answer.isCorrect ??
+                    JSON.stringify(answer.selectedOption) === JSON.stringify(q.correctOption);
+            }
+            return {
+                id: q.id,
+                order: q.questionOrder,
+                correct_option: q.correctOption,
+                is_correct: isCorrect,
+                sequence: q.sequence
+            };
+        });
+    }
+
     async getTopicAnalysis(sessionId: string, payload: TokenPayload, partId?: string) {
         const submit = await this.submitRepository.findOne({
             where: { id: sessionId, userId: payload.userId },
