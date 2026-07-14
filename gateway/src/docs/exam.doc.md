@@ -1058,7 +1058,11 @@ Returns per-topic breakdown of answers for a session. Optionally filter by part.
       "incorrect": 1,
       "skipped": 0,
       "accuracy": 0.833,
-      "questionIds": ["uuid-1", "uuid-2", "uuid-3"]
+      "questions": [
+        { "id": "uuid-1", "sequence": 1 },
+        { "id": "uuid-2", "sequence": 2 },
+        { "id": "uuid-3", "sequence": 3 }
+      ]
     },
     {
       "topicId": null,
@@ -1067,7 +1071,10 @@ Returns per-topic breakdown of answers for a session. Optionally filter by part.
       "incorrect": 1,
       "skipped": 1,
       "accuracy": 0.5,
-      "questionIds": ["uuid-4", "uuid-5"]
+      "questions": [
+        { "id": "uuid-4", "sequence": 4 },
+        { "id": "uuid-5", "sequence": 5 }
+      ]
     }
   ],
   "message": "Topic analysis fetched successfully",

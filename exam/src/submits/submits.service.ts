@@ -362,7 +362,7 @@ export class SubmitsService {
             incorrect: number;
             skipped: number;
             accuracy: number;
-            questionIds: string[];
+            questions: { id: string; sequence: number }[];
         };
 
         const topicMap = new Map<string, TopicEntry>();
@@ -374,13 +374,13 @@ export class SubmitsService {
             incorrect: 0,
             skipped: 0,
             accuracy: 0,
-            questionIds: [],
+            questions: [],
         };
 
         for (const answer of answers) {
             const topics = answer.question.questionTopics || [];
             if (topics.length === 0) {
-                untagged.questionIds.push(answer.question.id);
+                untagged.questions.push({ id: answer.question.id, sequence: answer.question.sequence });
                 if (answer.isCorrect === true) untagged.correct++;
                 else if (answer.isCorrect === false) untagged.incorrect++;
                 else untagged.skipped++;
@@ -397,11 +397,11 @@ export class SubmitsService {
                         incorrect: 0,
                         skipped: 0,
                         accuracy: 0,
-                        questionIds: [],
+                        questions: [],
                     });
                 }
                 const entry = topicMap.get(topic.id)!;
-                entry.questionIds.push(answer.question.id);
+                entry.questions.push({ id: answer.question.id, sequence: answer.question.sequence });
                 if (answer.isCorrect === true) entry.correct++;
                 else if (answer.isCorrect === false) entry.incorrect++;
                 else entry.skipped++;
@@ -410,7 +410,7 @@ export class SubmitsService {
 
         const result = [...topicMap.values()];
 
-        if (untagged.questionIds.length > 0 && !partId) {
+        if (untagged.questions.length > 0 && !partId) {
             const total = untagged.correct + untagged.incorrect + untagged.skipped;
             untagged.accuracy = total > 0 ? untagged.correct / total : 0;
             result.push(untagged);
